@@ -1,12 +1,22 @@
 var a, b, c: integer;
 
+procedure procnome (var teste: real);
+begin
+   if (3+4) then 1+2;
+end;
+
+function fncnome (var teste: real): integer;
+begin
+   if (3+4) then 1+2;
+end;
+
 begin
    repeat
       if (3+4) then 1+2;
-      
+
       while 5+2 do
       begin
-         if (3+4) then 1+2;   
+         if (3+4) then 1+2;
       end
    until (0);
 end.
