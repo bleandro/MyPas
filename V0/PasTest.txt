@@ -1,0 +1,12 @@
+var a, b, c: integer;
+
+begin
+   repeat
+      if (3+4) then 1+2;
+      
+      while 5+2 do
+      begin
+         if (3+4) then 1+2;   
+      end
+   until (0);
+end.

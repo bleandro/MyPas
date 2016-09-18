@@ -14,6 +14,7 @@ FILE *source;
 
 extern int lookahead; // @ parser.c
 
+int
 main (int argc, char *argv[], char *envp[])
 {
         if (argc == 1) {
@@ -29,7 +30,8 @@ main (int argc, char *argv[], char *envp[])
 
         lookahead = gettoken (source);
 
-        cmd();
+        mypas();
+        printf("\n");
 
-        exit (0);
+        return 0;
 }

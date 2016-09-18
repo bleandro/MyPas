@@ -6,21 +6,18 @@
 
  */
 
-// Dish = tape / Cake = lexeme //
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <tokens.h>
 #include <lexer.h>
+#include <keywords.h>
 
 void skipspaces (FILE *tape){
-        int head;
-
-        while ( isspace ( head = getc (tape) ) );
-
-        ungetc ( head, tape );
+  int head;
+  while ( isspace ( head = getc (tape) ) );
+  ungetc ( head, tape );
 }
 
 char lexeme[MAXID_SIZE+1];//@ lexer.c
@@ -30,9 +27,14 @@ int is_identifier(FILE *tape){
 
         lexeme[i] = getc(tape);
         if (isalpha (lexeme[i]) ) {
-                for (i++; isalnum (lexeme[i] = getc(tape)) && i <= MAXID_SIZE; i++);
+
+                for (i++;
+                     isalnum (lexeme[i] = getc(tape));
+                     i < MAXID_SIZE ? i++ : i);
+
                 ungetc (lexeme[i], tape);
                 lexeme[i] = 0;
+                if( i = iskeyword(lexeme) ) return i;
                 return ID;
         }
         ungetc (lexeme[i], tape);
@@ -181,33 +183,33 @@ int hasExponencial(FILE *tape){
   return 0;
 }
 
-int gettoken (FILE *tokenstream)
+int gettoken (FILE *sourcecode)
 {
         int token;
 
-        skipspaces (tokenstream);
+        skipspaces (sourcecode);
 
-        if ( token = is_identifier(tokenstream) ) {
-                return ID;
+        if ( token = is_identifier(sourcecode) ) {
+                return token;
         }
 
-        if ( token = is_hexadecimal (tokenstream) ) {
+        if ( token = is_hexadecimal (sourcecode) ) {
                 return HEX;
         }
 
-        if ( token = is_octal (tokenstream) ) {
+        if ( token = is_octal (sourcecode) ) {
                 return OCTAL;
         }
 
-        if ( token = is_decimal_float (tokenstream) ) {
-          if ( hasExponencial (tokenstream) )
+        if ( token = is_decimal_float (sourcecode) ) {
+          if ( hasExponencial (sourcecode) )
              return FLT;
-
 
           return token;
         }
 
-        token = getc (tokenstream);
+        lexeme[0] = token = getc (sourcecode);
+        lexeme[1] = 0;
 
         return token;
 }
