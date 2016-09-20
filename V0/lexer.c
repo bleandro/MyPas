@@ -22,6 +22,18 @@ void skipspaces (FILE *tape){
 
 char lexeme[MAXID_SIZE+1];//@ lexer.c
 
+int is_assign(FILE *tape){
+  if((lexeme[0] = getc(tape)) == ':'){
+    if((lexeme[1] = getc(tape)) == '='){
+      lexeme[2] = 0;
+      return ASGN;
+    }
+    ungetc(lexeme[1], tape);
+  }
+  ungetc(lexeme[0], tape);
+  return 0; 
+}
+
 int is_identifier(FILE *tape){
         int i = 0;
 

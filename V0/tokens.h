@@ -6,6 +6,7 @@ enum {
 	OCTAL,
 	HEX,
 	FLT,
+	ASGN,
 };
 
 enum {

@@ -121,24 +121,23 @@ void fnctype(void){
 *	| <empty>
 */
 void stmt(void){
-	switch (lookahead) {
-		case BEGIN:
-			imperative();
-			break;
-		case IF:
-			ifstmt();
-			break;
-		case WHILE:
-			whilestmt();
-			break;
-		case REPEAT:
-			repstmt();
-			break;
-		case ID: case DEC: case '(':
-			expr();
-			break;
-
-	}
+  switch (lookahead) {
+    case BEGIN:
+      imperative();
+      break;
+    case IF:
+      ifstmt();
+      break;
+    case WHILE:
+      whilestmt();
+      break;
+    case REPEAT:
+      repstmt();
+      break;
+    case ID: case DEC: case '(':
+      expr();
+      break;
+  }
 }
 
 /** stmtlist -> stmt { ';' stmt } */
@@ -205,21 +204,27 @@ void expr (void)
  	if(lookahead == '-'){
 		match('-');
 	}
-	term(); rest();
+	else if(lookahead == 'NOT') {
+	  match(NOT);
+	}
+	term(); 
+	rest();
 }
 
 /** rest -> addop term rest | <> */
 void rest (void)
 {
 	if (addop()) {
-		term(); rest();
+	  term(); 
+	  rest();
 	}
 }
 
 /** term -> fact quoc */
 void term (void)
 {
-	fact(); quoc();
+  fact();
+  quoc();
 }
 
 /** quoc -> mulop fact quoc | <> */
@@ -256,9 +261,9 @@ int addop (void)
 {
 	switch(lookahead){
 	case '+':
-			match('+'); return '+';
+	  match('+'); return '+';
 	case '-':
-			match('-'); return '-';
+	  match('-'); return '-';
 	}
 	return 0;
 }
@@ -267,10 +272,18 @@ int addop (void)
 int mulop (void)
 {
 	switch(lookahead){
-	case '*':
-			match('*'); return '*';
-	case '/':
-			match('/'); return '/';
+	  case '*':
+	    match('*'); 
+	    return '*';
+	  case '/':
+	    match('/'); 
+	    return '/';
+	  case AND:
+	    match(AND);
+	    return AND;
+	  case OR:
+	    match(OR);
+	    return(OR);
 	}
 	return 0;
 }
