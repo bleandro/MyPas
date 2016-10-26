@@ -40,7 +40,7 @@ void declarative(void){
 			match(':');
 			type = vartype();
 			for(i = 0; namev[i]; i++) 
-				symtab_append(namev[i], type);
+				//symtab_append(namev[i], type);
 			match(';');
 		} while(lookahead == ID);
 	}

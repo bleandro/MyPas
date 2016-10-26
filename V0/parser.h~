@@ -25,7 +25,7 @@ void imperative(void);
 char** namelist(void);
 void parmdef(void);
 void declarative(void);
-int vartype(void);
+void vartype(void);
 void fnctype(void);
 void stmt(void);
 void stmtlist(void);
