@@ -12,14 +12,19 @@
 
 /** mypas -> body'.' */
 void mypas(void){
+	printf("antes body \n");
 	body();
+	printf("depois body \n");
 	match('.');
 }
 
 /** body -> declarative imperative */
 void body(void){
+	printf("antes declarative \n");
 	declarative();
+	printf("depois declarative \n");
 	imperative();
+	printf("depois imperative \n");
 }
 
 /** declarative -> [ VAR namelist ':' vartype ';' || 
@@ -32,7 +37,9 @@ void declarative(void){
 								      		symtab_append(symbol,vartype.type) 
 								      end do
 	*/
+	printf("ANTES DO IF");
 	if(lookahead == VAR) {
+		printf("VAR: %d", lookahead);
 		match(VAR);
 		do {
 			int type, i;
@@ -40,7 +47,7 @@ void declarative(void){
 			match(':');
 			type = vartype();
 			for(i = 0; namev[i]; i++) 
-				//symtab_append(namev[i], type);
+				symtab_append(namev[i], type);
 			match(';');
 		} while(lookahead == ID);
 	}
@@ -64,7 +71,9 @@ void declarative(void){
 
 /** imperative -> BEGIN stmtlist END */
 void imperative(void){
+	printf("antes begin \n");
 	match(BEGIN);
+	printf("DEPOIS BEGIN \n");
 	stmtlist();
 	match(END);
 }

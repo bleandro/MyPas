@@ -13,7 +13,7 @@ int symtab_stream_next_descriptor = 0;
 int symtab_lookup(char const *name) {
 	int i;
 	for(i = symtab_nextentry - 1; i > -1; i--) {
-		if(strcmp(symtab_stream[symtab[i][0]], name) == 0) {
+		if(strcmp(&symtab_stream[symtab[i][0]], name) == 0) {
 			break;
 		}		
 	}

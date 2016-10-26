@@ -202,18 +202,22 @@ int gettoken (FILE *sourcecode)
         skipspaces (sourcecode);	
 	
         if ( token = is_identifier(sourcecode) ) {
+		printf("identifier \n");
                 return token;
         }
 
         if ( token = is_hexadecimal (sourcecode) ) {
+		printf("hexadecimal \n");
                 return HEX;
         }
 
         if ( token = is_octal (sourcecode) ) {
+		printf("octal \n");
                 return OCTAL;
         }
 
-        if ( token = is_decimal_float (sourcecode) ) {	  
+        if ( token = is_decimal_float (sourcecode) ) {
+	  printf("decimal \n");
           if ( hasExponencial (sourcecode) )
              return FLT;
 
