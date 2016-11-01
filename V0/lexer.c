@@ -201,6 +201,10 @@ int gettoken (FILE *sourcecode)
 
         skipspaces (sourcecode);	
 	
+	if ( token = is_assign(sourcecode) ) {
+		return ASGN;
+	}
+
         if ( token = is_identifier(sourcecode) ) {
                 return token;
         }

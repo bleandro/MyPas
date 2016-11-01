@@ -7,6 +7,7 @@
 #include <lexer.h>
 #include <ctype.h>
 #include <symtab.h>
+#include <mypas.h>
 
 /*************************** LL(1) grammar definition ******************************/
 
@@ -72,22 +73,26 @@ void imperative(void){
 /** namelist -> ID {, ID} */
 #define MAX_ARG_NUM 1024
 char** namelist(void) {
-	char** symvec = calloc(MAX_ARG_NUM, sizeof(char**));
-	int i = 0;
-	symvec[i] = malloc(sizeof(lexeme) + 1);
+	/**/ char** symvec = calloc(MAX_ARG_NUM, sizeof(char**)); /**/
+	/**/ int i = 0; /**/
+
+	_namelistbegin:
+	/**/ symvec[i] = malloc(sizeof(lexeme) + 1);
 	strcpy(symvec[i], lexeme);
-	i++;
+	i++; /**/
+
 	match(ID);
-	while(lookahead == ',') {
+	if(lookahead == ',') {
+
 		match(',');
-		match(ID);
+		goto _namelistbegin;
 	}
 	return symvec;
 }
 
 /** parmdef -> [ ( [VAR] namelist ':' vartype { ';' [VAR] namelist ':' vartype } ) ] */
 void parmdef(void) {
-	if(lookahead == '('){
+	if (lookahead == '(') {
 
 		match('(');
 		P_Entry:
@@ -118,11 +123,6 @@ int vartype(void) {
 		default: 
 			match(BOOLEAN);
 			return BOOLEAN;
-			
-
-		/*default: fprintf(stderr, "parser: token mismatch error. found # %d (%s) ", lookahead, lexeme);
-		         fprintf(stderr, "whereas expected vartype");
-						 exit(SYNTAX_ERR);*/
 	}
 }
 
@@ -135,10 +135,6 @@ void fnctype(void){
 			match(REAL);
 			break;
 		default: match(BOOLEAN);
-
-		/*default: fprintf(stderr, "parser: token mismatch error. found # %d (%s) ", lookahead, lexeme);
-		         fprintf(stderr, "whereas expected function type");
-						 exit(SYNTAX_ERR);*/
 	}
 }
 
@@ -233,8 +229,8 @@ void expr (void)
  	if(lookahead == '-'){
 		match('-');
 	}
-	else if(lookahead == 'NOT') {
-	  match(NOT);
+	else if(lookahead == NOT) {
+		match(NOT);
 	}
 	term(); 
 	rest();
@@ -267,16 +263,43 @@ void quoc (void)
 /** fact -> vrbl | cons | ( expr ) */
 void fact (void)
 {
+	/*[[*/ int varlocality, lvalue = 0; /*]]*/
 	switch (lookahead) {
 	case ID:
-		/* symbol must be declared */
+		/* symbol must be declared */		
+
+		/*[[*/
+		varlocality = symtab_lookup(lexeme);
+		if (varlocality < 0)
+			fprintf(stderr, "%s not declared\n", lexeme);
+		/*]]*/
 		
-		match (ID); break;
+
+		match (ID); 
+		/*[[*/
+		if(lookahead == ASGN) {
+			lvalue = 1;
+			match(ASGN);
+			expr();
+		} else if (varlocality > -1){
+			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n", 
+				symtab_stream + symtab[varlocality][0]);
+		}
+		/*]]*/
+		break;
 	case DEC:
 		match (DEC); break;
 	default:
 		match ('('); expr(); match (')');
 	}
+
+	/* expression ends down here */
+	/*[[*/
+	if (lvalue && varlocality > -1){
+		fprintf(object, "\tmovl %s, %%eax\n",
+			symtab_stream + symtab[varlocality][0]);
+	}
+	/*]]*/
 }
 
 /** vrbl -> ID
@@ -295,6 +318,8 @@ int addop (void)
 	  match('+'); return '+';
 	case '-':
 	  match('-'); return '-';
+	case OR:
+	  match(OR); return OR;
 	}
 	return 0;
 }
@@ -304,17 +329,11 @@ int mulop (void)
 {
 	switch(lookahead){
 	  case '*':
-	    match('*'); 
-	    return '*';
+	    match('*'); return '*';
 	  case '/':
-	    match('/'); 
-	    return '/';
+	    match('/'); return '/';
 	  case AND:
-	    match(AND);
-	    return AND;
-	  case OR:
-	    match(OR);
-	    return(OR);
+	    match(AND); return AND;
 	}
 	return 0;
 }

@@ -10,13 +10,14 @@
 #include <interpreter.h>
 #include <parser.h>
 
-FILE *source;
+FILE *source, *object;
 
 extern int lookahead; // @ parser.c
 
 int
 main (int argc, char *argv[], char *envp[])
 {
+	object = stdout;
         if (argc == 1) {
                 source = stdin;
         } else {

@@ -2,6 +2,8 @@ var a, b, c: integer;
 
 procedure procnome (var teste: real);
 begin
+   a := 5;
+   b := a + 3;
    if (3+4) then 1+2;
 end;
 
