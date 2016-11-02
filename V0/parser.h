@@ -32,3 +32,4 @@ void stmtlist(void);
 void ifstmt(void);
 void whilestmt(void);
 void repstmt(void);
+int is_compatible(int, int);

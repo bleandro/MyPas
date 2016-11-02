@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <macros.h>
 #include <tokens.h>
 #include <parser.h>
 #include <keywords.h>
@@ -224,15 +225,57 @@ void repstmt(void){
  **********************************************************************************/
 
 /* expr -> term rest */
-void expr (void)
+/*
+ * | OP     | BOOLEAN     | NUMERIC   | 
+ * |--------|-------------|-----------|
+ * | NOT    |    X        |    NA     | 
+ * | OR     |    X        |    NA     |
+ * | AND    |    X        |    NA     |
+ * | CHS    |    NA       |    X      |
+ * | '+''-' |    NA       |    X      |
+ * | '*''/' |    NA       |    X      |
+ * | DIV    |    NA       | INTEGER   |
+ * | MOD    |    NA       | INTEGER   |
+ * | RELOP  | BOOL X BOOL | NUM X NUM |
+
+ * | EXPRESS | INTEGER  | REAL    | DOUBLE |
+ * |---------|----------|---------|--------|
+ * | INTEGER | INTEGER  | REAL    | DOUBLE |
+ * | REAL    | REAL     | REAL    | DOUBLE |
+ * | DOUBLE  | DOUBLE   | DOUBLE  | DOUBLE |
+ *
+ * | LVALUE  | BOOLEAN | INTEGER |  REAL  | DOUBLE |
+ * |---------|---------|---------|--------|--------|
+ * | BOOLEAN | BOOLEAN |   NA    |   NA   |   NA   |
+ * | INTEGER |    NA   | INTEGER |   NA   |   NA   |
+ * | REAL    |    NA   |   REAL  |  REAL  |   NA   |
+ * | DOUBLE  |    NA   | DOUBLE  | DOUBLE | DOUBLE |
+ *
+ */
+int expr (int inherited_type)
 {
- 	if(lookahead == '-'){
+	/*[[*/ int acctype = inherited_type; /*]]*/
+ 	if(lookahead == '-') {
 		match('-');
+		/*[[*/
+		if(acctype == BOOLEAN) {
+			fprintf(stderr, "incompatible types: fatal error.\n");
+		} 
+		else if(acctype == 0) {
+			acctype = INTEGER;
+		}
+		/*]]*/
 	}
 	else if(lookahead == NOT) {
 		match(NOT);
+		/*[[*/
+		if(acctype > BOOLEAN) {
+			fprintf(stderr, "incompatible types: fatal error.\n");
+		}
+		acctype = BOOLEAN;
+		/*]]*/
 	}
-	term(); 
+	term(acctype); 
 	rest();
 }
 
@@ -246,9 +289,10 @@ void rest (void)
 }
 
 /** term -> fact quoc */
-void term (void)
+void term (int inherited_type)
 {
-  fact();
+  int acctype = inherited_type;
+  fact(acctype);
   quoc();
 }
 
@@ -261,9 +305,9 @@ void quoc (void)
 }
 
 /** fact -> vrbl | cons | ( expr ) */
-void fact (void)
+void fact (int syntype)
 {
-	/*[[*/ int varlocality, lvalue = 0; /*]]*/
+	/*[[*/ int acctype = syntype, varlocality, lvalue = 0; /*]]*/
 	switch (lookahead) {
 	case ID:
 		/* symbol must be declared */		
@@ -281,7 +325,8 @@ void fact (void)
 			lvalue = 1;
 			match(ASGN);
 			expr();
-		} else if (varlocality > -1){
+		} 
+		else if (varlocality > -1) {
 			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n", 
 				symtab_stream + symtab[varlocality][0]);
 		}
@@ -290,12 +335,20 @@ void fact (void)
 	case DEC:
 		match (DEC); break;
 	default:
-		match ('('); expr(); match (')');
+		match ('('); 
+		/*[[*/ syntype = expr(); /*]]*/		
+		/*[[*/ if(is_compatible(syntype, acctype)) {
+			acctype = max(acctype, syntype);
+		}
+		else {
+			fprintf(stderr, "parethesized type incompatible with accumulated type: fatal error.");
+		} /*]]*/
+		 match (')');
 	}
 
 	/* expression ends down here */
 	/*[[*/
-	if (lvalue && varlocality > -1){
+	if (lvalue && varlocality > -1) {
 		fprintf(object, "\tmovl %s, %%eax\n",
 			symtab_stream + symtab[varlocality][0]);
 	}
