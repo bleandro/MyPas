@@ -84,7 +84,6 @@ char** namelist(void) {
 
 	match(ID);
 	if(lookahead == ',') {
-
 		match(',');
 		goto _namelistbegin;
 	}
@@ -160,9 +159,22 @@ void stmt(void){
     case REPEAT:
       repstmt();
       break;
-    case ID: case DEC: case '(': /* here after we expect FIRST(expr) */
-      expr();
+
+    /* here after we expect FIRST(expr) */
+    case ID: 
+    case DEC:
+    case FLT:
+    case TRUE:
+    case FALSE:
+    case NOT:
+    case '-':
+    case '(': 
+      expr(0);
       break;
+
+    default:
+        /*<epsilon>*/
+        ;
   }
 }
 
@@ -176,27 +188,86 @@ void stmtlist(void){
 }
 
 /** IF expr THEN { stmt } [ ELSE stmt ] */
+int labelcounter = 1;
 void ifstmt(void){
-	match(IF); expr(); match(THEN);
-		stmt();
+	int _endif, _else;
+	match(IF); 
+	superexpr(BOOLEAN);
+	fprintf(object, "\tjz .L%d\n", _endif = _else = labelcounter++);
+	match(THEN);
+	stmt();
 
 	if(lookahead == ELSE){
 		match(ELSE);
+		fprintf(object, "\tjmp .L%d\n",	_endif = labelcounter++);
+		fprintf(object, ".L%d:\n", _else);
 		stmt();
 	}
+	fprintf(object, ".L%d:\n", _endif);
 }
 
 /** WHILE expr DO stmt */
 void whilestmt(void){
-	match(WHILE); expr(); match(DO);
-		stmt();
+	int _while, _end;
+	match(WHILE); 
+	superexpr(BOOLEAN); 
+	fprintf(object, ".L%d:\n", _while = labelcounter++);
+	fprintf(object, "\tjz .L%d\n",	_end = labelcounter++);
+	match(DO);
+	stmt();
+	fprintf(object, "\tjmp .L%d\n",	_while);
+	fprintf(object, ".L%d:\n", _end);
 }
 
 /** REPEAT stmtlist UNTIL expr */
 void repstmt(void){
+	int _repeat;
 	match(REPEAT);
-		stmtlist();
-	match(UNTIL); expr();
+	fprintf(object, ".L%d:\n", _repeat = labelcounter++);
+	stmtlist();
+	match(UNTIL); 	
+	superexpr(BOOLEAN);
+	fprintf(object, "\tjnz .L%d\n",	_repeat);
+}
+
+int isrelop(void)
+{
+	switch(lookahead) {
+		case '>':
+			match('>');
+			if (lookahead == '='){
+				match('=');
+				return GEQ;
+			}
+			return '>';
+		case '<':
+			match('<');
+			if (lookahead == '>') {
+				match('>');
+				return NEQ;
+			}
+			if (lookahead == '=') {
+				match('=');
+				return LEQ;
+			}
+			return '<';
+		case '=':
+			match('=');
+			return '=';
+	}
+}
+
+/* syntax: superexpr -> expr [ relop expr ] */
+int superexpr(int inherited_type)
+{
+	int t1, t2;
+	t1 = expr(inherited_type);
+	if (isrelop()) {
+		t2 = expr(t1);
+		// TODO - VERIFY TYPES
+	}
+
+	return min(BOOLEAN, t2);
 }
 
 /*
@@ -224,7 +295,7 @@ void repstmt(void){
  *
  **********************************************************************************/
 
-/* expr -> term rest */
+
 /*
  * | OP     | BOOLEAN     | NUMERIC   | 
  * |--------|-------------|-----------|
@@ -252,107 +323,117 @@ void repstmt(void){
  * | DOUBLE  |    NA   | DOUBLE  | DOUBLE | DOUBLE |
  *
  */
+int is_compatible(int ltype, int rtype)
+{
+	switch(ltype){
+		case BOOLEAN:
+		case INTEGER:
+			if (ltype == rtype) return ltype;
+			break;
+		case REAL:
+			switch(rtype) {
+				case INTEGER: case REAL:
+					return ltype;
+			}
+			break;
+		case DOUBLE:
+			switch(rtype) {
+				case INTEGER: case REAL: case DOUBLE:
+					return ltype;
+			}
+	}
+
+	return 0;
+}
+
+/* expr -> term rest */
 int expr (int inherited_type)
 {
-	/*[[*/ int acctype = inherited_type; /*]]*/
- 	if(lookahead == '-') {
+	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype;
+ 	
+	if(lookahead == '-') {
 		match('-');
-		/*[[*/
+		
 		if(acctype == BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		} 
 		else if(acctype == 0) {
 			acctype = INTEGER;
 		}
-		/*]]*/
+		
 	}
 	else if(lookahead == NOT) {
 		match(NOT);
-		/*[[*/
 		if(acctype > BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		acctype = BOOLEAN;
-		/*]]*/
+		
 	}
-	term(acctype); 
-	rest();
-}
 
-/** rest -> addop term rest | <> */
-void rest (void)
-{
-	if (addop()) {
-	  term(); 
-	  rest();
-	}
-}
-
-/** term -> fact quoc */
-void term (int inherited_type)
-{
-  int acctype = inherited_type;
-  fact(acctype);
-  quoc();
-}
-
-/** quoc -> mulop fact quoc | <> */
-void quoc (void)
-{
-	if (mulop()) {
-		fact(); quoc();
-	}
-}
-
-/** fact -> vrbl | cons | ( expr ) */
-void fact (int syntype)
-{
-	/*[[*/ int acctype = syntype, varlocality, lvalue = 0; /*]]*/
+   T_Entry:
+   F_Entry:
 	switch (lookahead) {
 	case ID:
 		/* symbol must be declared */		
-
-		/*[[*/
 		varlocality = symtab_lookup(lexeme);
-		if (varlocality < 0)
+		if (varlocality < 0) {
 			fprintf(stderr, "%s not declared\n", lexeme);
-		/*]]*/
-		
+			syntype = -1;
+		}
+		else {
+			syntype = symtab[varlocality][1];
+		}
 
-		match (ID); 
-		/*[[*/
-		if(lookahead == ASGN) {
-			lvalue = 1;
+		match(ID); 
+		if(lookahead == ASGN) {		// ASGN = ":="
+			/* located variable is LVALUE */
+			lvalue_seen = 1;
+			ltype = syntype;
 			match(ASGN);
-			expr();
+			rtype = superexpr(ltype);
+
+			if(is_compatible(ltype, rtype)) {
+				acctype = max(acctype, rtype);
+			}
+			else {
+				acctype = -1;
+			}
 		} 
 		else if (varlocality > -1) {
 			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n", 
 				symtab_stream + symtab[varlocality][0]);
 		}
-		/*]]*/
+
 		break;
 	case DEC:
-		match (DEC); break;
+        case FLT:
+		match (lookahead); break;
 	default:
 		match ('('); 
-		/*[[*/ syntype = expr(); /*]]*/		
-		/*[[*/ if(is_compatible(syntype, acctype)) {
+		syntype = superexpr(0); 		
+		if(is_compatible(syntype, acctype)) {
 			acctype = max(acctype, syntype);
 		}
 		else {
 			fprintf(stderr, "parethesized type incompatible with accumulated type: fatal error.");
-		} /*]]*/
-		 match (')');
+		} 
+		match (')');
 	}
 
+	if (mulop())
+		goto F_Entry;
+	
+	if (addop())
+		goto T_Entry;
+
 	/* expression ends down here */
-	/*[[*/
-	if (lvalue && varlocality > -1) {
+	
+	if (lvalue_seen && varlocality > -1) {
 		fprintf(object, "\tmovl %s, %%eax\n",
 			symtab_stream + symtab[varlocality][0]);
 	}
-	/*]]*/
+
 }
 
 /** vrbl -> ID

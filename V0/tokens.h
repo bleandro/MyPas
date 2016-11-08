@@ -7,6 +7,9 @@ enum {
 	HEX,
 	FLT,
 	ASGN,
+	GEQ,
+	LEQ,
+	NEQ
 };
 
 enum {

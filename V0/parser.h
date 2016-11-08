@@ -12,11 +12,7 @@ extern char lexeme[];
 
 /* syntax names */
 void cmd  (void);
-void expr (void);
-void rest (void);
-void term (void);
-void quoc (void);
-void fact (void);
+int expr (int);
 int addop (void);
 int mulop (void);
 void mypas(void);
