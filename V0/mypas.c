@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mypas.h>
-#include <interpreter.h>
 #include <parser.h>
 
 FILE *source, *object;

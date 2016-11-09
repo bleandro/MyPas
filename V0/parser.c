@@ -255,6 +255,8 @@ int isrelop(void)
 			match('=');
 			return '=';
 	}
+
+	return 0;
 }
 
 /* syntax: superexpr -> expr [ relop expr ] */
@@ -412,11 +414,11 @@ int expr (int inherited_type)
 	default:
 		match ('('); 
 		syntype = superexpr(0); 		
-		if(is_compatible(syntype, acctype)) {
+		if(is_compatible(syntype, acctype)) { // TODO
 			acctype = max(acctype, syntype);
 		}
 		else {
-			fprintf(stderr, "parethesized type incompatible with accumulated type: fatal error.");
+			//fprintf(stderr, "parethesized type incompatible with accumulated type: fatal error.\n");
 		} 
 		match (')');
 	}

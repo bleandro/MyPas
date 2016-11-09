@@ -4,22 +4,22 @@ procedure procnome (var teste: real);
 begin
    a := 5;
    b := a + 3;
-   if (3+4) then 1+2;
+   if (3 > 4) then 1+2;
 end;
 
 function fncnome (var teste: real): integer;
 begin
-   if (3+4) then 1+2;
+   if (3 > 4) then 1+2;
 end;
 
 
 begin
    repeat
-      if (3+4) then 1+2;
+      if (3 <> 4) then 1+2;
 
-      while 5+2 do
+      while 5 < 2 do
       begin
-         if (3+4) then 1+2;
+         if (3 >= 4) then 1+2;
       end
-   until (0);
+   until ((5+3) <= (3+1));
 end.
