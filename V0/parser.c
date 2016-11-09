@@ -227,7 +227,7 @@ void repstmt(void){
 	stmtlist();
 	match(UNTIL); 	
 	superexpr(BOOLEAN);
-	fprintf(object, "\tjnz .L%d\n",	_repeat);
+	fprintf(object, "\tjz .L%d\n",	_repeat);
 }
 
 int isrelop(void)
