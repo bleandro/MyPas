@@ -458,6 +458,15 @@ int expr (int inherited_type)
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		break;
+	case TRUE: case FALSE:
+		match(lookahead);
+		syntype = BOOLEAN;
+		if (acctype == BOOLEAN || acctype == 0) {
+		    acctype = BOOLEAN;
+		} else {
+		    fprintf(stderr, "incompatible types: fatal error.\n");
+		}
+		break;
 	default:
 		match ('('); 
 		syntype = superexpr(0); 		
