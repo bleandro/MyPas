@@ -274,6 +274,81 @@ int superexpr(int inherited_type)
 }
 
 /*
+ * | OP     | BOOLEAN     | NUMERIC   | 
+ * |--------|-------------|-----------|
+ * | NOT    |    X        |    NA     | 
+ * | OR     |    X        |    NA     |
+ * | AND    |    X        |    NA     |
+ * | CHS    |    NA       |    X      |
+ * | '+''-' |    NA       |    X      |
+ * | '*''/' |    NA       |    X      |
+ * | DIV    |    NA       | INTEGER   |
+ * | MOD    |    NA       | INTEGER   |
+ * | RELOP  | BOOL X BOOL | NUM X NUM |
+*/
+int is_operand_compatible(int ltype, int rtype, int operand){
+      switch(operand){
+	case '+':case '-':
+	case '*':case '/':
+	  if ((ltype > BOOLEAN) && (rtype > BOOLEAN)) return 1;
+	  break;
+	  
+	case OR: case AND:
+	  if ((ltype == BOOLEAN) && (rtype == BOOLEAN)) return 1;
+	  break;
+	  
+	case DIV: case MOD:
+	  if ((ltype == INTEGER) && (rtype == INTEGER)) return 1;
+	  
+	case '>': case '<':
+	case '=': case NEQ:
+	case GEQ: case LEQ:
+	  if (ltype == rtype) return 1;	
+	  break;
+      }
+      
+      return 0;
+}
+
+/* 
+ * | EXPRESS | INTEGER  | REAL    | DOUBLE |
+ * |---------|----------|---------|--------|
+ * | INTEGER | INTEGER  | REAL    | DOUBLE |
+ * | REAL    | REAL     | REAL    | DOUBLE |
+ * | DOUBLE  | DOUBLE   | DOUBLE  | DOUBLE |
+ *
+ * | LVALUE  | BOOLEAN | INTEGER |  REAL  | DOUBLE |
+ * |---------|---------|---------|--------|--------|
+ * | BOOLEAN | BOOLEAN |   NA    |   NA   |   NA   |
+ * | INTEGER |    NA   | INTEGER |   NA   |   NA   |
+ * | REAL    |    NA   |   REAL  |  REAL  |   NA   |
+ * | DOUBLE  |    NA   | DOUBLE  | DOUBLE | DOUBLE |
+ *
+ */
+int is_ASGN_compatible(int ltype, int rtype)
+{
+	switch(ltype){
+		case BOOLEAN:
+		case INTEGER:
+			if (ltype == rtype) return ltype;
+			break;
+		case REAL:
+			switch(rtype) {
+				case INTEGER: case REAL:
+					return ltype;
+			}
+			break;
+		case DOUBLE:
+			switch(rtype) {
+				case INTEGER: case REAL: case DOUBLE:
+					return ltype;
+			}
+	}
+
+	return 0;
+}
+
+/*
  * expr -> term rest
  *
  * rest -> addop term rest | <>
@@ -297,59 +372,6 @@ int superexpr(int inherited_type)
  * DEC = [1-9][0-9]* | 0
  *
  **********************************************************************************/
-
-
-/*
- * | OP     | BOOLEAN     | NUMERIC   | 
- * |--------|-------------|-----------|
- * | NOT    |    X        |    NA     | 
- * | OR     |    X        |    NA     |
- * | AND    |    X        |    NA     |
- * | CHS    |    NA       |    X      |
- * | '+''-' |    NA       |    X      |
- * | '*''/' |    NA       |    X      |
- * | DIV    |    NA       | INTEGER   |
- * | MOD    |    NA       | INTEGER   |
- * | RELOP  | BOOL X BOOL | NUM X NUM |
-
- * | EXPRESS | INTEGER  | REAL    | DOUBLE |
- * |---------|----------|---------|--------|
- * | INTEGER | INTEGER  | REAL    | DOUBLE |
- * | REAL    | REAL     | REAL    | DOUBLE |
- * | DOUBLE  | DOUBLE   | DOUBLE  | DOUBLE |
- *
- * | LVALUE  | BOOLEAN | INTEGER |  REAL  | DOUBLE |
- * |---------|---------|---------|--------|--------|
- * | BOOLEAN | BOOLEAN |   NA    |   NA   |   NA   |
- * | INTEGER |    NA   | INTEGER |   NA   |   NA   |
- * | REAL    |    NA   |   REAL  |  REAL  |   NA   |
- * | DOUBLE  |    NA   | DOUBLE  | DOUBLE | DOUBLE |
- *
- */
-int is_compatible(int ltype, int rtype)
-{
-	switch(ltype){
-		case BOOLEAN:
-		case INTEGER:
-			if (ltype == rtype) return ltype;
-			break;
-		case REAL:
-			switch(rtype) {
-				case INTEGER: case REAL:
-					return ltype;
-			}
-			break;
-		case DOUBLE:
-			switch(rtype) {
-				case INTEGER: case REAL: case DOUBLE:
-					return ltype;
-			}
-	}
-
-	return 0;
-}
-
-/* expr -> term rest */
 int expr (int inherited_type)
 {
 	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype;
@@ -398,7 +420,7 @@ int expr (int inherited_type)
 			match(ASGN);
 			rtype = superexpr(ltype);
 
-			if(is_compatible(ltype, rtype)) {
+			if(is_ASGN_compatible(ltype, rtype)) {
 				acctype = max(acctype, rtype);
 			}
 			else {
@@ -412,12 +434,25 @@ int expr (int inherited_type)
 
 		break;
 	case DEC:
+		match(DEC);
+		if (acctype > BOOLEAN || acctype == 0) {
+		    acctype = max(acctype, INTEGER);
+		} else {
+		    fprintf(stderr, "incompatible types: fatal error.\n");
+		}
+		break;
         case FLT:
-		match (lookahead); break;
+		match(FLT);
+		if (acctype > BOOLEAN || acctype == 0) {
+		    acctype = max(acctype, REAL);
+		} else {
+		    fprintf(stderr, "incompatible types: fatal error.\n");
+		}
+		break;
 	default:
 		match ('('); 
 		syntype = superexpr(0); 		
-		if(is_compatible(acctype, syntype)) {
+		if(is_ASGN_compatible(acctype, syntype)) {
 		    acctype = max(acctype, syntype);
 		}
 		else {
