@@ -262,13 +262,20 @@ int isrelop(void)
 /* syntax: superexpr -> expr [ relop expr ] */
 int superexpr(int inherited_type)
 {
+	int reloperand = 0;
 	int t1 = 0, t2 = 0;
 	t1 = expr(inherited_type);
-	if (isrelop()) {
+	if (reloperand = isrelop()) {
 		t2 = expr(t1);
+		
+		if (!(is_operand_compatible(t1, t2, reloperand)))
+		  fprintf(stderr, "operand not applicable\n");
 		
 		return BOOLEAN;
 	}
+	
+	if (t1 < 0)
+	  fprintf(stderr, "type mismatch: fatal error\n");
 
 	return max(t1, t2);
 }
@@ -374,7 +381,7 @@ int is_ASGN_compatible(int ltype, int rtype)
  **********************************************************************************/
 int expr (int inherited_type)
 {
-	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype;
+	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, muloperand = 0, addoperand = 0;
  	
 	if(lookahead == '-') {
 		match('-');
@@ -452,7 +459,7 @@ int expr (int inherited_type)
 	default:
 		match ('('); 
 		syntype = superexpr(0); 		
-		if(is_ASGN_compatible(acctype, syntype)) {
+		if((acctype == 0) || (is_ASGN_compatible(acctype, syntype))) {
 		    acctype = max(acctype, syntype);
 		}
 		else {
@@ -461,10 +468,15 @@ int expr (int inherited_type)
 		match (')');
 	}
 
-	if (mulop())
+	if ((muloperand) > 0 || (addoperand > 0)){
+		if (!(is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
+		  fprintf(stderr, "operand not applicable\n");
+	}
+	
+	if (muloperand = mulop())
 		goto F_Entry;
 	
-	if (addop())
+	if (addoperand = addop())
 		goto T_Entry;
 
 	/* expression ends down here */

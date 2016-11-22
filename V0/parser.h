@@ -30,3 +30,4 @@ void ifstmt(void);
 void whilestmt(void);
 void repstmt(void);
 int is_ASGN_compatible(int, int);
+int is_operand_compatible(int, int, int);
