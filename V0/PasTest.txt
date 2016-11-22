@@ -17,7 +17,7 @@ begin
    repeat
       if (3 <> 4) then 1+2;
 
-      while 5 < 2 do
+      while (5 < 2) do
       begin
          if (3 >= 4) then 1+2;
       end

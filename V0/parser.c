@@ -410,7 +410,7 @@ int expr (int inherited_type)
 		/* symbol must be declared */		
 		varlocality = symtab_lookup(lexeme);
 		if (varlocality < 0) {
-			fprintf(stderr, "%s not declared\n", lexeme);
+			fprintf(stderr, "identifier not found: %s\n", lexeme);
 			syntype = -1;
 		}
 		else {
