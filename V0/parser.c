@@ -442,16 +442,18 @@ int expr (int inherited_type)
 		break;
 	case DEC:
 		match(DEC);
+		syntype = INTEGER;
 		if (acctype > BOOLEAN || acctype == 0) {
-		    acctype = max(acctype, INTEGER);
+		    acctype = max(acctype, syntype);
 		} else {
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		break;
         case FLT:
 		match(FLT);
+		syntype = REAL;
 		if (acctype > BOOLEAN || acctype == 0) {
-		    acctype = max(acctype, REAL);
+		    acctype = max(acctype, syntype);
 		} else {
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
