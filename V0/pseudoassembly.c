@@ -1,4 +1,7 @@
 /**@<pseudoassembly.c>::**/
+#include <stdio.h>
+#include <mypas.h>
+
 
 int labelcounter = 1;
 int gofalse(int label){
@@ -34,10 +37,8 @@ int rmoveq(char const *variable){
 //unary
 int neglog(void){
 }
-
 int negint(void){
 }
-
 int negflt(void){
 }
 int negdbl(void){
@@ -105,3 +106,5 @@ int divflt(void){
 
 int divdbl(void){
 }
+
+//cc program -S

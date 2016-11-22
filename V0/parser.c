@@ -508,10 +508,10 @@ int expr (int inherited_type)
 				lmoveq(symtab_stream + symtab[varlocality][0]);
 			break;
 			default:
-				;
+			break;
 		}
 	}
-}
+
 	return acctype;
 }
 

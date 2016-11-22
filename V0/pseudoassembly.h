@@ -1,7 +1,7 @@
 /**@<pseudoassembly.h>::**/
 
 //unified label counter
-extern int labelcounter = 1;
+extern int labelcounter;
 
 //control pseudo-instructions
 int gofalse(int label);
