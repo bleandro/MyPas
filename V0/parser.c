@@ -25,14 +25,14 @@ void body(void){
 	imperative();
 }
 
-/** declarative -> [ VAR namelist ':' vartype ';' || 
+/** declarative -> [ VAR namelist ':' vartype ';' ||
 			{ namelist ':' vartype ';' } ]
                    { sbpmod sbpname parmdef [ ':' fnctype ] ';' body ';' } */
 void declarative(void){
 	int sbpmod;
-	
+
 	/* vardef -> VAR namelist ':' vartype ';' || vardef.symtab <- forall symbol in namelist.name do
-								      		symtab_append(symbol,vartype.type) 
+								      		symtab_append(symbol,vartype.type)
 								      end do
 	*/
 	if(lookahead == VAR) {
@@ -42,7 +42,7 @@ void declarative(void){
 			char** namev = namelist();
 			match(':');
 			type = vartype();
-			for(i = 0; namev[i]; i++) 
+			for(i = 0; namev[i]; i++)
 				symtab_append(namev[i], type);
 			match(';');
 		} while(lookahead == ID);
@@ -121,7 +121,7 @@ int vartype(void) {
 			match(REAL);
 			return REAL;
 			break;
-		default: 
+		default:
 			match(BOOLEAN);
 			return BOOLEAN;
 	}
@@ -162,14 +162,14 @@ void stmt(void){
       break;
 
     /* here after we expect FIRST(expr) */
-    case ID: 
+    case ID:
     case DEC:
     case FLT:
     case TRUE:
     case FALSE:
     case NOT:
     case '-':
-    case '(': 
+    case '(':
       expr(0);
       break;
 
@@ -191,7 +191,7 @@ void stmtlist(void){
 /** IF expr THEN { stmt } [ ELSE stmt ] */
 void ifstmt(void){
 	int _endif, _else;
-	match(IF); 
+	match(IF);
 	superexpr(BOOLEAN);
 	_endif = _else = gofalse(labelcounter++);
 	match(THEN);
@@ -209,9 +209,9 @@ void ifstmt(void){
 /** WHILE expr DO stmt */
 void whilestmt(void){
 	int _whilehead = labelcounter++, _whiletail;
-	match(WHILE); 
+	match(WHILE);
 	mklabel(_whilehead = labelcounter++);
-	superexpr(BOOLEAN); 
+	superexpr(BOOLEAN);
 	gofalse(_whiletail = labelcounter++);
 	match(DO);
 	stmt();
@@ -225,7 +225,7 @@ void repstmt(void){
 	match(REPEAT);
 	fprintf(object, ".L%d:\n", _repeat = labelcounter++);
 	stmtlist();
-	match(UNTIL); 	
+	match(UNTIL);
 	superexpr(BOOLEAN);
 	fprintf(object, "\tjz .L%d\n",	_repeat);
 }
@@ -267,13 +267,13 @@ int superexpr(int inherited_type)
 	t1 = expr(inherited_type);
 	if (reloperand = isrelop()) {
 		t2 = expr(t1);
-		
+
 		if (!(is_operand_compatible(t1, t2, reloperand)))
 		  fprintf(stderr, "operand not applicable\n");
-		
+
 		return BOOLEAN;
 	}
-	
+
 	if (t1 < 0)
 	  fprintf(stderr, "type mismatch: fatal error\n");
 
@@ -281,9 +281,9 @@ int superexpr(int inherited_type)
 }
 
 /*
- * | OP     | BOOLEAN     | NUMERIC   | 
+ * | OP     | BOOLEAN     | NUMERIC   |
  * |--------|-------------|-----------|
- * | NOT    |    X        |    NA     | 
+ * | NOT    |    X        |    NA     |
  * | OR     |    X        |    NA     |
  * | AND    |    X        |    NA     |
  * | CHS    |    NA       |    X      |
@@ -299,25 +299,25 @@ int is_operand_compatible(int ltype, int rtype, int operand){
 	case '*':case '/':
 	  if ((ltype > BOOLEAN) && (rtype > BOOLEAN)) return 1;
 	  break;
-	  
+
 	case OR: case AND:
 	  if ((ltype == BOOLEAN) && (rtype == BOOLEAN)) return 1;
 	  break;
-	  
+
 	case DIV: case MOD:
 	  if ((ltype == INTEGER) && (rtype == INTEGER)) return 1;
-	  
+
 	case '>': case '<':
 	case '=': case NEQ:
 	case GEQ: case LEQ:
-	  if (ltype == rtype) return 1;	
+	  if (ltype == rtype) return 1;
 	  break;
       }
-      
+
       return 0;
 }
 
-/* 
+/*
  * | EXPRESS | INTEGER  | REAL    | DOUBLE |
  * |---------|----------|---------|--------|
  * | INTEGER | INTEGER  | REAL    | DOUBLE |
@@ -382,17 +382,17 @@ int is_ASGN_compatible(int ltype, int rtype)
 int expr (int inherited_type)
 {
 	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, muloperand = 0, addoperand = 0;
- 	
+
 	if(lookahead == '-') {
 		match('-');
-		
+
 		if(acctype == BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
-		} 
+		}
 		else if(acctype == 0) {
 			acctype = INTEGER;
 		}
-		
+
 	}
 	else if(lookahead == NOT) {
 		match(NOT);
@@ -400,14 +400,14 @@ int expr (int inherited_type)
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		acctype = BOOLEAN;
-		
+
 	}
 
    T_Entry:
    F_Entry:
 	switch (lookahead) {
 	case ID:
-		/* symbol must be declared */		
+		/* symbol must be declared */
 		varlocality = symtab_lookup(lexeme);
 		if (varlocality < 0) {
 			fprintf(stderr, "identifier not found: %s\n", lexeme);
@@ -416,10 +416,10 @@ int expr (int inherited_type)
 		else {
 			syntype = symtab[varlocality][1];
 		}
-		
+
 		if (acctype == 0) acctype = syntype;
 
-		match(ID); 
+		match(ID);
 		if(lookahead == ASGN) {		// ASGN = ":="
 			/* located variable is LVALUE */
 			lvalue_seen = 1;
@@ -433,9 +433,9 @@ int expr (int inherited_type)
 			else {
 				fprintf(stderr, "incompatible types in assignment\n");
 			}
-		} 
+		}
 		else if (varlocality > -1) {
-			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n", 
+			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n",
 				symtab_stream + symtab[varlocality][0]);
 		}
 
@@ -448,8 +448,15 @@ int expr (int inherited_type)
 		} else {
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
-		break;
-        case FLT:
+	break;
+  case FLT:
+				{
+					float lexval = atof(lexeme);  //alpha to float
+					char *fltIEEE = malloc(sizeof(lexeme)+1);
+					sprintf(fltIEEE, "$%i", *((int *)&lexval));
+					rmovel(fltIEEE);
+					//printf("%i", *((int *)&lexval)); //interpreta a memoria como se fosse inteiro
+				}
 		match(FLT);
 		syntype = REAL;
 		if (acctype > BOOLEAN || acctype == 0) {
@@ -468,8 +475,8 @@ int expr (int inherited_type)
 		}
 		break;
 	default:
-		match ('('); 
-		syntype = superexpr(0); 		
+		match ('(');
+		syntype = superexpr(0);
 		if((acctype == 0) || (is_ASGN_compatible(acctype, syntype))) {
 		    acctype = max(acctype, syntype);
 		}
@@ -483,20 +490,28 @@ int expr (int inherited_type)
 		if (!(is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
 		  fprintf(stderr, "operand not applicable\n");
 	}
-	
+
 	if (muloperand = mulop())
 		goto F_Entry;
-	
+
 	if (addoperand = addop())
 		goto T_Entry;
 
 	/* expression ends down here */
-	
-	if (lvalue_seen && varlocality > -1) {
-		fprintf(object, "\tmovl %s, %%eax\n",
-			symtab_stream + symtab[varlocality][0]);
+
+	if (lvalue_seen && varlocality > -1) {			//what i have changed
+		switch(ltype){
+			case INTEGER: case REAL:
+				lmovel(symtab_stream + symtab[varlocality][0]);
+			break;
+			case DOUBLE:
+				lmoveq(symtab_stream + symtab[varlocality][0]);
+			break;
+			default:
+				;
+		}
 	}
-	
+}
 	return acctype;
 }
 
