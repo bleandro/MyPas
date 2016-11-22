@@ -262,14 +262,15 @@ int isrelop(void)
 /* syntax: superexpr -> expr [ relop expr ] */
 int superexpr(int inherited_type)
 {
-	int t1, t2;
+	int t1 = 0, t2 = 0;
 	t1 = expr(inherited_type);
 	if (isrelop()) {
 		t2 = expr(t1);
-		// TODO - VERIFY TYPES
+		
+		return BOOLEAN;
 	}
 
-	return min(BOOLEAN, t2);
+	return max(t1, t2);
 }
 
 /*
@@ -386,6 +387,8 @@ int expr (int inherited_type)
 		else {
 			syntype = symtab[varlocality][1];
 		}
+		
+		if (acctype == 0) acctype = syntype;
 
 		match(ID); 
 		if(lookahead == ASGN) {		// ASGN = ":="
@@ -399,7 +402,7 @@ int expr (int inherited_type)
 				acctype = max(acctype, rtype);
 			}
 			else {
-				acctype = -1;
+				fprintf(stderr, "incompatible types in assignment\n");
 			}
 		} 
 		else if (varlocality > -1) {
@@ -414,12 +417,12 @@ int expr (int inherited_type)
 	default:
 		match ('('); 
 		syntype = superexpr(0); 		
-		if(is_compatible(syntype, acctype)) { // TODO
-			acctype = max(acctype, syntype);
+		if(is_compatible(acctype, syntype)) {
+		    acctype = max(acctype, syntype);
 		}
 		else {
-			//fprintf(stderr, "parethesized type incompatible with accumulated type: fatal error.\n");
-		} 
+		    acctype = -1;
+		}
 		match (')');
 	}
 
@@ -435,7 +438,8 @@ int expr (int inherited_type)
 		fprintf(object, "\tmovl %s, %%eax\n",
 			symtab_stream + symtab[varlocality][0]);
 	}
-
+	
+	return acctype;
 }
 
 /** vrbl -> ID
