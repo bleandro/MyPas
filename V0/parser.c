@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pseudoassembly.h>
 #include <macros.h>
 #include <tokens.h>
 #include <parser.h>
@@ -188,35 +189,34 @@ void stmtlist(void){
 }
 
 /** IF expr THEN { stmt } [ ELSE stmt ] */
-int labelcounter = 1;
 void ifstmt(void){
 	int _endif, _else;
 	match(IF); 
 	superexpr(BOOLEAN);
-	fprintf(object, "\tjz .L%d\n", _endif = _else = labelcounter++);
+	_endif = _else = gofalse(labelcounter++);
 	match(THEN);
 	stmt();
 
 	if(lookahead == ELSE){
 		match(ELSE);
-		fprintf(object, "\tjmp .L%d\n",	_endif = labelcounter++);
-		fprintf(object, ".L%d:\n", _else);
+		_endif = jump(labelcounter++);
+		mklabel(_else);
 		stmt();
 	}
-	fprintf(object, ".L%d:\n", _endif);
+	mklabel(_endif);
 }
 
 /** WHILE expr DO stmt */
 void whilestmt(void){
-	int _while, _end;
+	int _whilehead = labelcounter++, _whiletail;
 	match(WHILE); 
+	mklabel(_whilehead = labelcounter++);
 	superexpr(BOOLEAN); 
-	fprintf(object, ".L%d:\n", _while = labelcounter++);
-	fprintf(object, "\tjz .L%d\n",	_end = labelcounter++);
+	gofalse(_whiletail = labelcounter++);
 	match(DO);
 	stmt();
-	fprintf(object, "\tjmp .L%d\n",	_while);
-	fprintf(object, ".L%d:\n", _end);
+	jump(_whilehead);
+	mklabel(_whiletail);
 }
 
 /** REPEAT stmtlist UNTIL expr */
