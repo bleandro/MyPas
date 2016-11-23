@@ -38,10 +38,36 @@ int rmoveq(char const *variable){
 int neglog(void){
 }
 int negint(void){
+  /*  negl %eax, (%esp)
+      popl %eax   */
+  fprintf(object, "\tnegl %%eax, (%%esp)\n\tpopl %%eax\n");
+  return 0; //verificar o que tem que retornar
 }
 int negflt(void){
+  /*  movss  (%esp), %xmm1    //verify
+      movss  %eax, %xmm0
+      negss  %xmm1, %xmm0
+      movss  %xmm0, %eax
+      addl   $4, %esp         //pop   */
+  fprintf(object, "\tmovss (%%esp), %%xmm1\n");
+  fprintf(object, "\tmovss %%eax, %%xmm0\n");
+  fprintf(object, "\tnegss %%xmm1, %%xmm0\n");
+  fprintf(object, "\tmovss %%xmm0, %%eax\n");
+  fprintf(object, "\taddl $4, %%esp\n");
+  return 0;
 }
 int negdbl(void){
+  /*  movsd (%rsp), %xmm1
+      movsd %rax, %xmm0
+      negsd %xmm1, %xmm0
+      movsd %xmm0, %rax
+      addq  $8, $rsp        */
+  fprintf(object, "\tmovsd (%%rsp), %%xmm1\n");
+  fprintf(object, "\tmovsd %%rax, %%xmm0\n");
+  fprintf(object, "\tnegsd %%xmm1, %%xmm0\n");
+  fprintf(object, "\tmovsd %%xmm0, %%rax\n");
+  fprintf(object, "\taddq $8, $rsp\n");
+  return 0;
 }
 
 //binary addition and inverse
