@@ -26,11 +26,11 @@ int lmoveq(char const *variable){
 }
 
 int rmovel(char const *variable){
-  fprintf(object, "\tmovl %s, %%eax\n", variable);
+  fprintf(object, "\tpushl %%eax\n\tmovl %s, %%eax\n", variable);
   return 0;
 }
 int rmoveq(char const *variable){
-  fprintf(object, "\tmovq %s, %%rax\n", variable);
+  fprintf(object, "\tpushl %%eax\n\tmovq %s, %%rax\n", variable);
   return 0;
 }
 
