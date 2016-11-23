@@ -355,6 +355,107 @@ int is_ASGN_compatible(int ltype, int rtype)
 	return 0;
 }
 
+void execute_operation(int type, int operand){
+    switch(operand){
+      //Add operation
+      case '+':
+	switch(type){
+	  case INTEGER:
+	    addint();
+	    break;
+	    
+	  case FLT:
+	    addflt();
+	    break;
+	    
+	  case DOUBLE:
+	    adddbl();
+	    break;
+	    
+	  case BOOLEAN:
+	    addlog();
+	    break;
+	}
+        break;
+      
+      //Sub operation
+      case '-':
+	switch(type){
+	  case INTEGER:
+	    subint();
+	    break;
+	    
+	  case FLT:
+	    subflt();
+	    break;
+	    
+	  case DOUBLE:
+	    subdbl();
+	    break;
+	}
+      break;
+      
+      //Mul operation
+      case '*':
+	switch(type){
+	  case INTEGER:
+	    mulint();
+	    break;
+	    
+	  case FLT:
+	    mulflt();
+	    break;
+	    
+	  case DOUBLE:
+	    muldbl();
+	    break;
+	  
+	  case BOOLEAN:
+	    mullog();
+	    break;
+	}
+      break;
+      
+      //Div operation
+      case '/':
+	switch(type){
+	  case INTEGER:
+	    divint();
+	    break;
+	    
+	  case FLT:
+	    divflt();
+	    break;
+	    
+	  case DOUBLE:
+	    divdbl();
+	    break;
+	}
+      break;
+      
+      //Negate operation
+      case NOT:
+	switch(type){
+	  case INTEGER:
+	    negint();
+	    break;
+	    
+	  case FLT:
+	    negflt();
+	    break;
+	    
+	  case DOUBLE:
+	    negdbl();
+	    break;
+	  
+	  case BOOLEAN:
+	    neglog();
+	    break;
+	}
+      break;
+    }
+}
+
 /*
  * expr -> term rest
  *
@@ -441,6 +542,12 @@ int expr (int inherited_type)
 
 		break;
 	case DEC:
+		{
+		      int lexval = atoi(lexeme);  //alpha to Integer
+		      char *integerIEEE = malloc(sizeof(lexeme)+1);
+		      sprintf(integerIEEE, "$%i", lexval);
+		      rmovel(integerIEEE);
+		}
 		match(DEC);
 		syntype = INTEGER;
 		if (acctype > BOOLEAN || acctype == 0) {
@@ -449,14 +556,13 @@ int expr (int inherited_type)
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 	break;
-  case FLT:
-				{
-					float lexval = atof(lexeme);  //alpha to float
-					char *fltIEEE = malloc(sizeof(lexeme)+1);
-					sprintf(fltIEEE, "$%i", *((int *)&lexval));
-					rmovel(fltIEEE);
-					//printf("%i", *((int *)&lexval)); //interpreta a memoria como se fosse inteiro
-				}
+	case FLT:
+		{
+		      float lexval = atof(lexeme);  //alpha to float
+		      char *fltIEEE = malloc(sizeof(lexeme)+1);
+		      sprintf(fltIEEE, "$%i", *((int *)&lexval));
+		      rmovel(fltIEEE);
+		}
 		match(FLT);
 		syntype = REAL;
 		if (acctype > BOOLEAN || acctype == 0) {
@@ -465,6 +571,7 @@ int expr (int inherited_type)
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		break;
+		
 	case TRUE: case FALSE:
 		match(lookahead);
 		syntype = BOOLEAN;
@@ -487,8 +594,11 @@ int expr (int inherited_type)
 	}
 
 	if ((muloperand) > 0 || (addoperand > 0)){
-		if (!(is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
+		if ((is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
+		  execute_operation(acctype, max(addoperand, muloperand)); 
+		else {
 		  fprintf(stderr, "operand not applicable\n");
+		}
 	}
 
 	if (muloperand = mulop())
@@ -499,7 +609,7 @@ int expr (int inherited_type)
 
 	/* expression ends down here */
 
-	if (lvalue_seen && varlocality > -1) {			//what i have changed
+	if (lvalue_seen && varlocality > -1) {
 		switch(ltype){
 			case INTEGER: case REAL:
 				lmovel(symtab_stream + symtab[varlocality][0]);
