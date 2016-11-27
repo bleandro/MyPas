@@ -135,9 +135,8 @@ int is_hexadecimal(FILE *tape){
 int is_decimal_float(FILE *tape){
     // (dec '.' digit* | '.' digit+ ) exp? | dec exp
       int i;
-      lexeme[0] = getc(tape);
 
-      if( is_decimal(lexeme[0]) ){ //inicia com dec
+      if( is_decimal(tape) ){ //inicia com dec
                 i = strlen(lexeme);
                 lexeme[i] = getc(tape);
 
@@ -146,22 +145,26 @@ int is_decimal_float(FILE *tape){
                             isdigit(lexeme[i] = getc(tape));
                             i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
 
+                        /*
                         ungetc(lexeme[i], tape);
                         if(hasExponencial(tape) == 'FLT') // dec . digit exp
-                            return FLT;
+                            return FLT; */
 
                         ungetc(lexeme[i], tape);
                         lexeme[i] = 0;
                         return FLT;
                 }
-                
+
+                /*
                 if(hasExponencial(tape) == 'FLT') // dec exp
-                  return FLT;
+                  return FLT; */
 
                 ungetc(lexeme[i], tape);
                 lexeme[i] = 0;
                 return DEC;
       }
+
+      lexeme[0] = getc(tape);
 
       if (lexeme[0] == '.'){  //inicia com .
                 i = 1;
@@ -170,9 +173,10 @@ int is_decimal_float(FILE *tape){
                             isdigit(lexeme[i] = getc(tape));
                             i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
 
+                        /*
                         ungetc(lexeme[i], tape);
                         if(hasExponencial(tape) == 'FLT') // . digit exp
-                          return FLT;
+                          return FLT;  */
 
                         ungetc(lexeme[i], tape);
                         lexeme[i] = 0;
