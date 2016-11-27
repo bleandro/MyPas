@@ -6,17 +6,19 @@
 int labelcounter = 1;
 int gofalse(int label){
       fprintf(object, "\tjz .L%d\n", label);
+      return label;
 }
 
 int jump(int label){
       fprintf(object, "\tjmp .L%d\n", label);
+      return label;
 }
 
 int mklabel(int label){
       fprintf(object, ".L%d:\n", label);
       return label;
 }
-int lmovel(char const *variable){   //NOSSO É INVERSNO, PQ? NUM SEI, PQ DEUS QUIS
+int lmovel(char const *variable){ 
   fprintf(object, "\tmovl %%eax, %s\n", variable);
   return 0;
 }

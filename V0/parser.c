@@ -536,8 +536,16 @@ int expr (int inherited_type)
 			}
 		}
 		else if (varlocality > -1) {
-			fprintf(object, "\tpushl %%eax\n\tmovl %%eax, %s\n",
-				symtab_stream + symtab[varlocality][0]);
+		  	switch(acctype){
+			  case INTEGER: case REAL:
+				  rmovel(symtab_stream + symtab[varlocality][0]);
+			  break;
+			  case DOUBLE:
+				  rmoveq(symtab_stream + symtab[varlocality][0]);
+			  break;
+			  default:
+			  break;
+			}
 		}
 
 		break;
@@ -593,7 +601,9 @@ int expr (int inherited_type)
 		match (')');
 	}
 
+	// Test if there's any operation to execute
 	if ((muloperand) > 0 || (addoperand > 0)){
+		// Test if operand are compatible with types and execute the operation if it is
 		if ((is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
 		  execute_operation(acctype, max(addoperand, muloperand)); 
 		else {
