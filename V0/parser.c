@@ -277,7 +277,7 @@ int superexpr(int inherited_type)
 	if (t1 < 0)
 	  fprintf(stderr, "type mismatch: fatal error\n");
 
-	return max(t1, t2);
+	return t1;
 }
 
 /*
