@@ -482,11 +482,11 @@ void execute_operation(int type, int operand){
  **********************************************************************************/
 int expr (int inherited_type)
 {
-	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, muloperand = 0, addoperand = 0;
+	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, operand = 0, muloperand = 0, addoperand = 0, notoperand = 0;
 
 	if(lookahead == '-') {
 		match('-');
-
+		notoperand = NOT;
 		if(acctype == BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
@@ -497,6 +497,7 @@ int expr (int inherited_type)
 	}
 	else if(lookahead == NOT) {
 		match(NOT);
+		notoperand = NOT;
 		if(acctype > BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
@@ -602,13 +603,19 @@ int expr (int inherited_type)
 	}
 
 	// Test if there's any operation to execute
-	if ((muloperand) > 0 || (addoperand > 0)){
+	if (muloperand || addoperand){
 		// Test if operand are compatible with types and execute the operation if it is
-		if ((is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
-		  execute_operation(max(acctype, syntype), max(addoperand, muloperand)); 
+		operand = max(addoperand, muloperand);
+		if (is_operand_compatible(acctype, syntype, operand))
+		  execute_operation(max(acctype, syntype), operand); 
 		else {
 		  fprintf(stderr, "operand not applicable\n");
 		}
+	}
+	
+	if (notoperand) {
+	  execute_operation(max(acctype, syntype), notoperand);
+	  notoperand = 0;
 	}
 
 	if (muloperand = mulop())
