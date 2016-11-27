@@ -364,7 +364,7 @@ void execute_operation(int type, int operand){
 	    addint();
 	    break;
 	    
-	  case FLT:
+	  case REAL:
 	    addflt();
 	    break;
 	    
@@ -605,7 +605,7 @@ int expr (int inherited_type)
 	if ((muloperand) > 0 || (addoperand > 0)){
 		// Test if operand are compatible with types and execute the operation if it is
 		if ((is_operand_compatible(acctype, syntype, max(addoperand, muloperand))))
-		  execute_operation(acctype, max(addoperand, muloperand)); 
+		  execute_operation(max(acctype, syntype), max(addoperand, muloperand)); 
 		else {
 		  fprintf(stderr, "operand not applicable\n");
 		}
