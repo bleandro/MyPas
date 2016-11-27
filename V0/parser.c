@@ -223,11 +223,11 @@ void whilestmt(void){
 void repstmt(void){
 	int _repeat;
 	match(REPEAT);
-	fprintf(object, ".L%d:\n", _repeat = labelcounter++);
+	_repeat = mklabel(labelcounter++);
 	stmtlist();
 	match(UNTIL);
 	superexpr(BOOLEAN);
-	fprintf(object, "\tjz .L%d\n",	_repeat);
+	gofalse(_repeat);
 }
 
 int isrelop(void)
