@@ -385,7 +385,7 @@ void execute_operation(int type, int operand){
 	    subint();
 	    break;
 	    
-	  case FLT:
+	  case REAL:
 	    subflt();
 	    break;
 	    
@@ -402,7 +402,7 @@ void execute_operation(int type, int operand){
 	    mulint();
 	    break;
 	    
-	  case FLT:
+	  case REAL:
 	    mulflt();
 	    break;
 	    
@@ -423,7 +423,7 @@ void execute_operation(int type, int operand){
 	    divint();
 	    break;
 	    
-	  case FLT:
+	  case REAL:
 	    divflt();
 	    break;
 	    
@@ -440,7 +440,7 @@ void execute_operation(int type, int operand){
 	    negint();
 	    break;
 	    
-	  case FLT:
+	  case REAL:
 	    negflt();
 	    break;
 	    
