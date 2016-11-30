@@ -52,22 +52,6 @@ void declarative(void){
 			match(';');
 		} while(lookahead == ID);
 	}
-
-	while(lookahead == PROCEDURE || lookahead == FUNCTION) {
-		sbpmod = lookahead;
-		match(lookahead);
-		match(ID);
-		parmdef();
-
-		if(sbpmod == FUNCTION && lookahead == ':'){
-			match(':');
-			fnctype();
-		}
-
-		match(';');
-		body();
-		match(';');
-	}
 }
 
 /** imperative -> BEGIN stmtlist END */

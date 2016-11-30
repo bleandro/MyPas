@@ -5,7 +5,7 @@
 #include <keywords.h>
 
 char *keywords[] = {
-		"begin", "if", "then", "else", "while", "do", "repeat", "until", "var", "procedure", "function",
+		"begin", "if", "then", "else", "while", "do", "repeat", "until", "var", 
 		"boolean", "integer", "real", "double", "div", "mod", "and", "or", "not", "true", "false", "end"
 };
 
