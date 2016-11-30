@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <malloc.h>
 #include <pseudoassembly.h>
 #include <macros.h>
 #include <tokens.h>
-#include <parser.h>
 #include <keywords.h>
 #include <lexer.h>
-#include <ctype.h>
 #include <symtab.h>
 #include <mypas.h>
+#include <parser.h>
 
 /*************************** LL(1) grammar definition ******************************/
 

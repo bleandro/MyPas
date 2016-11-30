@@ -1,9 +1,8 @@
 /**@<keywords.c>::**/
 
-#include <keywords.h>
 #include <string.h>
-
 #include <stdio.h>
+#include <keywords.h>
 
 char *keywords[] = {
 		"begin", "if", "then", "else", "while", "do", "repeat", "until", "var", "procedure", "function",

@@ -1,8 +1,8 @@
 /**@<symtab.c>::**/
 
 #include <string.h>
-#include <symtab.h>
 #include <lexer.h>
+#include <symtab.h>
 
 int symtab[MAX_SYMTAB_ENTRIES][2];
 int symtab_nextentry = 0;

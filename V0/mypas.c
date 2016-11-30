@@ -6,8 +6,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <mypas.h>
 #include <parser.h>
+#include <mypas.h>
 
 FILE *source, *object;
 
@@ -24,7 +24,7 @@ main (int argc, char *argv[], char *envp[])
                 if (source == NULL) {
                         fprintf (stderr, "%s: cannot open %s... exiting\n",
                                 argv[0], argv[1]);
-                        exit (-1);
+                        return -1;
                 }
         }
 

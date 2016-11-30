@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <tokens.h>
-#include <lexer.h>
 #include <keywords.h>
+#include <lexer.h>
 
 void skipspaces (FILE *tape){
   int head;
