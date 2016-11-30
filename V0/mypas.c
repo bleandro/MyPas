@@ -17,7 +17,7 @@ extern int lookahead; // @ parser.c
 int
 main (int argc, char *argv[], char *envp[])
 {
-	object = stdout;
+	object = fopen("object.s", "w+");
         if (argc == 1) {
                 source = stdin;
         } else {
@@ -28,11 +28,10 @@ main (int argc, char *argv[], char *envp[])
                         return FLNTFND;
                 }
         }
-
-        lookahead = gettoken (source);
-
         mypas();
-        printf("\n");
-
+	fclose(object);
+	
+	if (error)
+	  remove("object.s");
         return 0;
 }

@@ -15,8 +15,11 @@
 
 /*************************** LL(1) grammar definition ******************************/
 
+int error;
 /** mypas -> body'.' */
 void mypas(void){
+	error = 0; // Initial value for error
+	lookahead = gettoken (source);
 	body();
 	match('.');
 }
@@ -87,6 +90,7 @@ char** namelist(void) {
 	    strcpy(symvec[i], lexeme);
 	    i++;
 	} else {
+	    error = IDDLCRD;
 	    fprintf(stderr, "identifier already declared: %s\n", lexeme);
 	}
 
@@ -280,6 +284,7 @@ int expr(int inherited_type)
 	}
 	else {
 	    if ((inherited_type == BOOLEAN && t1 > BOOLEAN) || (t1 == BOOLEAN && inherited_type > BOOLEAN)) {
+		error = TYMSMTCH;
 		fprintf(stderr, "type mismatch: fatal error\n");
 	    }
 	    else {
@@ -492,6 +497,7 @@ int smpexpr (int inherited_type)
 		match('-');
 		notoperator = NOT;
 		if(acctype == BOOLEAN) {
+			error = INCMPTY;
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		else if(acctype == 0) {
@@ -503,6 +509,7 @@ int smpexpr (int inherited_type)
 		match(NOT);
 		notoperator = NOT;
 		if(acctype > BOOLEAN) {
+			error = INCMPTY;
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		acctype = BOOLEAN;
@@ -516,6 +523,7 @@ int smpexpr (int inherited_type)
 		/* symbol must be declared */
 		varlocality = symtab_lookup(lexeme);
 		if (varlocality < 0) {
+			error = IDNTFND;
 			fprintf(stderr, "identifier not found: %s\n", lexeme);
 			syntype = -1;
 		}
@@ -537,6 +545,7 @@ int smpexpr (int inherited_type)
 				acctype = max(acctype, rtype);
 			}
 			else {
+				error = INCMPTY;
 				fprintf(stderr, "incompatible types in assignment\n");
 			}
 		}
@@ -566,6 +575,7 @@ int smpexpr (int inherited_type)
 		if (acctype > BOOLEAN || acctype == 0) {
 		    acctype = max(acctype, syntype);
 		} else {
+		    error = INCMPTY;
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 	break;
@@ -581,6 +591,7 @@ int smpexpr (int inherited_type)
 		if (acctype > BOOLEAN || acctype == 0) {
 		    acctype = max(acctype, syntype);
 		} else {
+		    error = INCMPTY;
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		break;
@@ -591,6 +602,7 @@ int smpexpr (int inherited_type)
 		if (acctype == BOOLEAN || acctype == 0) {
 		    acctype = BOOLEAN;
 		} else {
+		    error = INCMPTY;
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
 		break;
@@ -617,6 +629,7 @@ int smpexpr (int inherited_type)
 		if (is_operand_compatible(acctype, syntype, muloperator))
 		  assemble_operation(max(acctype, syntype), muloperator); 
 		else {
+		  error = OPNTAPPLY;
 		  fprintf(stderr, "operand not applicable\n");
 		}
 	}
@@ -630,6 +643,7 @@ int smpexpr (int inherited_type)
 		if (is_operand_compatible(acctype, syntype, addoperator))
 		  assemble_operation(max(acctype, syntype), addoperator); 
 		else {
+		  error = OPNTAPPLY;
 		  fprintf(stderr, "operand not applicable\n");
 		}
 	}
@@ -699,10 +713,11 @@ void match (int expected)
 	 if (expected == lookahead) {
 		 lookahead = gettoken (source);
 	 } else {
+	   
 		 fprintf(stderr, "parser: token mismatch error. found # %d (%s) ", lookahead, lexeme);
 
 		 fprintf(stderr, "whereas expected # %d\n", expected);
 
-		 exit(SYNTAX_ERR);
+		 error = SYNTAX_ERR;
 	 }
  }
