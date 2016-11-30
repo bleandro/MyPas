@@ -269,22 +269,25 @@ int isrelop(void)
 /* syntax: expr -> smpexpr [ relop smpexpr ] */
 int expr(int inherited_type)
 {
-	int reloperand = 0;
 	int t1 = 0, t2 = 0;
-	t1 = smpexpr(inherited_type);
-	if (reloperand = isrelop()) {
+	t1 = smpexpr(0);
+	if (isrelop()) {
 		t2 = smpexpr(t1);
-
-		if (!(is_operand_compatible(t1, t2, reloperand)))
-		  fprintf(stderr, "operand not applicable\n");
-
-		return BOOLEAN;
 	}
-
-	if (t1 < 0)
-	  fprintf(stderr, "type mismatch: fatal error\n");
-
-	return t1;
+	
+	if (t1 == t2 && t1 == BOOLEAN || t1 > BOOLEAN && t2 > BOOLEAN) {
+	    return BOOLEAN;
+	}
+	else {
+	    if ((inherited_type == BOOLEAN && t1 > BOOLEAN) || (t1 == BOOLEAN && inherited_type > BOOLEAN)) {
+		fprintf(stderr, "type mismatch: fatal error\n");
+	    }
+	    else {
+	      return max(t1, inherited_type);
+	    }
+	}
+	
+	return -1;
 }
 
 /*
@@ -313,12 +316,6 @@ int is_operand_compatible(int ltype, int rtype, int operand){
 
 	case DIV: case MOD:
 	  if ((ltype == INTEGER) && (rtype == INTEGER)) return 1;
-
-	case '>': case '<':
-	case '=': case NEQ:
-	case GEQ: case LEQ:
-	  if (ltype == rtype) return 1;
-	  break;
       }
 
       return 0;
