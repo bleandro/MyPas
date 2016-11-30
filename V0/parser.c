@@ -362,7 +362,7 @@ int is_ASGN_compatible(int ltype, int rtype)
 	return 0;
 }
 
-void execute_operation(int type, int operand){
+void assemble_operation(int type, int operand){
     switch(operand){
       //Add operation
       case '+':
@@ -610,7 +610,7 @@ int smpexpr (int inherited_type)
 	}
 
 	if (notoperator) {
-	  execute_operation(max(acctype, syntype), notoperator);
+	  assemble_operation(max(acctype, syntype), notoperator);
 	  notoperator = 0;
 	}
 	
@@ -618,7 +618,7 @@ int smpexpr (int inherited_type)
 	if (muloperator){
 		// Test if operand are compatible with types and execute the operation if it is
 		if (is_operand_compatible(acctype, syntype, muloperator))
-		  execute_operation(max(acctype, syntype), muloperator); 
+		  assemble_operation(max(acctype, syntype), muloperator); 
 		else {
 		  fprintf(stderr, "operand not applicable\n");
 		}
@@ -631,7 +631,7 @@ int smpexpr (int inherited_type)
 	if (addoperator){
 		// Test if operand are compatible with types and execute the operation if it is
 		if (is_operand_compatible(acctype, syntype, addoperator))
-		  execute_operation(max(acctype, syntype), addoperator); 
+		  assemble_operation(max(acctype, syntype), addoperator); 
 		else {
 		  fprintf(stderr, "operand not applicable\n");
 		}
