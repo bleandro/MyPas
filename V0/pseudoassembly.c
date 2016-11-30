@@ -5,20 +5,18 @@
 
 int labelcounter = 1;
 int gofalse(int label){
-      fprintf(object, "\tjz .L%d\n", label);
-      return label;
+  fprintf(object, "\tjz .L%d\n", label);
 }
 
 int jump(int label){
-      fprintf(object, "\tjmp .L%d\n", label);
-      return label;
+  fprintf(object, "\tjmp .L%d\n", label);
 }
 
 int mklabel(int label){
-      fprintf(object, ".L%d:\n", label);
-      return label;
+  fprintf(object, ".L%d:\n", label);
+  return label;
 }
-int lmovel(char const *variable){ 
+int lmovel(char const *variable){   //NOSSO É INVERSNO, PQ? NUM SEI, PQ DEUS QUIS
   fprintf(object, "\tmovl %%eax, %s\n", variable);
   return 0;
 }
@@ -38,6 +36,15 @@ int rmoveq(char const *variable){
 
 //unary
 int neglog(void){
+  /*  mov      %eax, (%esp)
+      not      %eax 
+      and      %eax, 1
+      mov      (%esp), %eax */
+  fprintf(object, "\tmov %%eax, (%%esp)\n");
+  fprintf(object, "\tnot %%eax\n");
+  fprintf(object, "\tand (%%eax), 1\n");
+  fprintf(object, "\tmov (%%esp), (%%eax)\n");
+  return 0;	
 }
 int negint(void){
   /*  negl %eax, (%esp)
@@ -51,10 +58,22 @@ int negflt(void){
       negss  %xmm1, %xmm0
       movss  %xmm0, %eax
       addl   $4, %esp         //pop   */
+
+  /* OUTRA SOLUÇÃO ENCONTRADA
+      movss	x(%rip), %xmm1
+      movss	.LC0(%rip), %xmm0
+      xorps	%xmm1, %xmm0
+      movss	%xmm0, x(%rip)
+  */
+
   fprintf(object, "\tmovss (%%esp), %%xmm1\n");
   fprintf(object, "\tmovss %%eax, %%xmm0\n");
   fprintf(object, "\tnegss %%xmm1, %%xmm0\n");
   fprintf(object, "\tmovss %%xmm0, %%eax\n");
+  //fprintf(object, "\tmovss (%%esp), %%xmm1\n");
+  //fprintf(object, "\tmovss %%eax, %%xmm0\n");
+  //fprintf(object, "\xorps %%xmm1, %%xmm0\n");
+  //fprintf(object, "\tmovss %%xmm0, %%eax\n");
   fprintf(object, "\taddl $4, %%esp\n");
   return 0;
 }
@@ -64,16 +83,34 @@ int negdbl(void){
       negsd %xmm1, %xmm0
       movsd %xmm0, %rax
       addq  $8, $rsp        */
+
+  /*  OUTRA SOLUÇÃO ENCONTRADA
+      movsd	x(%rip), %xmm1
+      movsd	.LC0(%rip), %xmm0
+      xorpd	%xmm1, %xmm0
+      movsd	%xmm0, x(%rip)
+  */
   fprintf(object, "\tmovsd (%%rsp), %%xmm1\n");
   fprintf(object, "\tmovsd %%rax, %%xmm0\n");
   fprintf(object, "\tnegsd %%xmm1, %%xmm0\n");
   fprintf(object, "\tmovsd %%xmm0, %%rax\n");
+  //fprintf(object, "\tmovsd (%%rsp), %%xmm1\n");
+  //fprintf(object, "\tmovsd %%rax, %%xmm0\n");
+  //fprintf(object, "\xorpd %%xmm1, %%xmm0\n");
+  //fprintf(object, "\tmovsd %%xmm0, %%rax\n");
   fprintf(object, "\taddq $8, $rsp\n");
   return 0;
 }
 
 //binary addition and inverse
 int addlog(void){
+  /*  mov      %eax, (%esp) 
+      or       %eax, (%esp) 
+      mov      (%esp), %eax  */
+  fprintf(object, "\tmov %%eax, (%%esp)\n");
+  fprintf(object, "\tor %%eax, (%%esp)\n");
+  fprintf(object, "\tmov (%esp), (%%eax)\n");   	
+  return 0;
 }
 int addint(void){
   /*  addl  %eax, (%esp)
@@ -143,6 +180,13 @@ int subdbl(void){
 
 //binary multiplication and inverse
 int mullog(void){
+  /*  mov      %eax, (%esp)
+      and      %eax, (%esp)
+      mov      (%esp), %eax  */
+  fprintf(object, "\tmov %%eax, (%%esp)\n");
+  fprintf(object, "\tand %%eax, (%%esp)\n");
+  fprintf(object, "\tmov (%esp), (%%eax)\n");	
+  return 0;
 }
 int mulint(void){
   /*  mull  %eax, (%esp)
