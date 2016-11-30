@@ -13,7 +13,7 @@ extern char lexeme[];
 /* syntax names */
 void cmd  (void);
 int expr (int);
-int superexpr (int);
+int smpexpr (int);
 int addop (void);
 int mulop (void);
 void mypas(void);

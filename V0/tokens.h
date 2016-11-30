@@ -11,7 +11,3 @@ enum {
 	LEQ,
 	NEQ
 };
-
-enum {
-	SYNTAX_ERR = -64,
-};

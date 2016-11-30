@@ -10,6 +10,7 @@
 #include <lexer.h>
 #include <symtab.h>
 #include <mypas.h>
+#include <mypaserrors.h>
 #include <parser.h>
 
 /*************************** LL(1) grammar definition ******************************/
@@ -141,10 +142,10 @@ void fnctype(void){
 }
 
 /*stmt -> imperative
-	| IF expr THEN { stmt } [ ELSE stmt ]
-*	| WHILE expr DO stmt
-*	| REPEAT stmtlist UNTIL expr
-*	| expr
+	| IF smpexpr THEN { stmt } [ ELSE stmt ]
+*	| WHILE smpexpr DO stmt
+*	| REPEAT stmtlist UNTIL smpexpr
+*	| smpexpr
 *	| <empty>
 */
 void stmt(void){
@@ -162,7 +163,7 @@ void stmt(void){
       repstmt();
       break;
 
-    /* here after we expect FIRST(expr) */
+    /* here after we expect FIRST(smpexpr) */
     case ID:
     case DEC:
     case FLT:
@@ -171,7 +172,7 @@ void stmt(void){
     case NOT:
     case '-':
     case '(':
-      expr(0);
+      smpexpr(0);
       break;
 
     default:
@@ -189,11 +190,11 @@ void stmtlist(void){
 	}
 }
 
-/** IF expr THEN { stmt } [ ELSE stmt ] */
+/** IF smpexpr THEN { stmt } [ ELSE stmt ] */
 void ifstmt(void){
 	int _endif, _else;
 	match(IF);
-	superexpr(BOOLEAN);
+	expr(BOOLEAN);
 	_endif = _else = gofalse(labelcounter++);
 	match(THEN);
 	stmt();
@@ -207,12 +208,12 @@ void ifstmt(void){
 	mklabel(_endif);
 }
 
-/** WHILE expr DO stmt */
+/** WHILE smpexpr DO stmt */
 void whilestmt(void){
 	int _whilehead = labelcounter++, _whiletail;
 	match(WHILE);
 	mklabel(_whilehead = labelcounter++);
-	superexpr(BOOLEAN);
+	expr(BOOLEAN);
 	gofalse(_whiletail = labelcounter++);
 	match(DO);
 	stmt();
@@ -220,14 +221,14 @@ void whilestmt(void){
 	mklabel(_whiletail);
 }
 
-/** REPEAT stmtlist UNTIL expr */
+/** REPEAT stmtlist UNTIL smpexpr */
 void repstmt(void){
 	int _repeat;
 	match(REPEAT);
 	_repeat = mklabel(labelcounter++);
 	stmtlist();
 	match(UNTIL);
-	superexpr(BOOLEAN);
+	expr(BOOLEAN);
 	gofalse(_repeat);
 }
 
@@ -260,14 +261,14 @@ int isrelop(void)
 	return 0;
 }
 
-/* syntax: superexpr -> expr [ relop expr ] */
-int superexpr(int inherited_type)
+/* syntax: expr -> smpexpr [ relop smpexpr ] */
+int expr(int inherited_type)
 {
 	int reloperand = 0;
 	int t1 = 0, t2 = 0;
-	t1 = expr(inherited_type);
+	t1 = smpexpr(inherited_type);
 	if (reloperand = isrelop()) {
-		t2 = expr(t1);
+		t2 = smpexpr(t1);
 
 		if (!(is_operand_compatible(t1, t2, reloperand)))
 		  fprintf(stderr, "operand not applicable\n");
@@ -458,7 +459,7 @@ void execute_operation(int type, int operand){
 }
 
 /*
- * expr -> term rest
+ * smpexpr -> term rest
  *
  * rest -> addop term rest | <>
  *
@@ -466,7 +467,7 @@ void execute_operation(int type, int operand){
  *
  * quoc -> mulop fact quoc | <>
  *
- * fact -> vrbl | cons | ( expr )
+ * fact -> vrbl | cons | ( smpexpr )
  *
  * vrbl -> ID
  *
@@ -481,7 +482,7 @@ void execute_operation(int type, int operand){
  * DEC = [1-9][0-9]* | 0
  *
  **********************************************************************************/
-int expr (int inherited_type)
+int smpexpr (int inherited_type)
 {
 	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, operand = 0, muloperand = 0, addoperand = 0, notoperand = 0;
 
@@ -528,7 +529,7 @@ int expr (int inherited_type)
 			lvalue_seen = 1;
 			ltype = syntype;
 			match(ASGN);
-			rtype = superexpr(ltype);
+			rtype = expr(ltype);
 
 			if(is_ASGN_compatible(ltype, rtype)) {
 				acctype = max(acctype, rtype);
@@ -593,7 +594,7 @@ int expr (int inherited_type)
 		break;
 	default:
 		match ('(');
-		syntype = superexpr(0);
+		syntype = expr(0);
 		if((acctype == 0) || (is_ASGN_compatible(acctype, syntype))) {
 		    acctype = max(acctype, syntype);
 		}
@@ -625,7 +626,7 @@ int expr (int inherited_type)
 	if (addoperand = addop())
 		goto T_Entry;
 
-	/* expression ends down here */
+	/* smpexpression ends down here */
 
 	if (lvalue_seen && varlocality > -1) {
 		switch(ltype){
