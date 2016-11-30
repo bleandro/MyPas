@@ -81,9 +81,14 @@ char** namelist(void) {
 	/**/ int i = 0; /**/
 
 	_namelistbegin:
-	/**/ symvec[i] = malloc(sizeof(lexeme) + 1);
-	strcpy(symvec[i], lexeme);
-	i++; /**/
+	
+	if(symtab_lookup(lexeme) < 0) {
+	    symvec[i] = malloc(sizeof(lexeme) + 1);
+	    strcpy(symvec[i], lexeme);
+	    i++;
+	} else {
+	    fprintf(stderr, "identifier already declared: %s\n", lexeme);
+	}
 
 	match(ID);
 	if(lookahead == ',') {
@@ -484,11 +489,11 @@ void execute_operation(int type, int operand){
  **********************************************************************************/
 int smpexpr (int inherited_type)
 {
-	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, operand = 0, muloperand = 0, addoperand = 0, notoperand = 0;
+	int acctype = inherited_type, syntype, varlocality, lvalue_seen = 0, ltype, rtype, muloperator = 0, addoperator = 0, notoperator = 0;
 
 	if(lookahead == '-') {
 		match('-');
-		notoperand = NOT;
+		notoperator = NOT;
 		if(acctype == BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
@@ -499,7 +504,7 @@ int smpexpr (int inherited_type)
 	}
 	else if(lookahead == NOT) {
 		match(NOT);
-		notoperand = NOT;
+		notoperator = NOT;
 		if(acctype > BOOLEAN) {
 			fprintf(stderr, "incompatible types: fatal error.\n");
 		}
@@ -604,29 +609,38 @@ int smpexpr (int inherited_type)
 		match (')');
 	}
 
-	// Test if there's any operation to execute
-	if (muloperand || addoperand){
+	if (notoperator) {
+	  execute_operation(max(acctype, syntype), notoperator);
+	  notoperator = 0;
+	}
+	
+	// Test if there's a MUL Operation to execute
+	if (muloperator){
 		// Test if operand are compatible with types and execute the operation if it is
-		operand = max(addoperand, muloperand);
-		if (is_operand_compatible(acctype, syntype, operand))
-		  execute_operation(max(acctype, syntype), operand); 
+		if (is_operand_compatible(acctype, syntype, muloperator))
+		  execute_operation(max(acctype, syntype), muloperator); 
 		else {
 		  fprintf(stderr, "operand not applicable\n");
 		}
 	}
+
+	if (muloperator = mulop())
+		goto F_Entry;
 	
-	if (notoperand) {
-	  execute_operation(max(acctype, syntype), notoperand);
-	  notoperand = 0;
+	// Test if there's an ADD Operation to execute
+	if (addoperator){
+		// Test if operand are compatible with types and execute the operation if it is
+		if (is_operand_compatible(acctype, syntype, addoperator))
+		  execute_operation(max(acctype, syntype), addoperator); 
+		else {
+		  fprintf(stderr, "operand not applicable\n");
+		}
 	}
 
-	if (muloperand = mulop())
-		goto F_Entry;
-
-	if (addoperand = addop())
+	if (addoperator = addop())
 		goto T_Entry;
 
-	/* smpexpression ends down here */
+	/* expression ends down here */
 
 	if (lvalue_seen && varlocality > -1) {
 		switch(ltype){
