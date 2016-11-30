@@ -109,7 +109,7 @@ int addlog(void){
       mov      (%esp), %eax  */
   fprintf(object, "\tmov %%eax, (%%esp)\n");
   fprintf(object, "\tor %%eax, (%%esp)\n");
-  fprintf(object, "\tmov (%esp), (%%eax)\n");   	
+  fprintf(object, "\tmov (%%esp), (%%eax)\n");   	
   return 0;
 }
 int addint(void){
@@ -185,7 +185,7 @@ int mullog(void){
       mov      (%esp), %eax  */
   fprintf(object, "\tmov %%eax, (%%esp)\n");
   fprintf(object, "\tand %%eax, (%%esp)\n");
-  fprintf(object, "\tmov (%esp), (%%eax)\n");	
+  fprintf(object, "\tmov (%%esp), (%%eax)\n");	
   return 0;
 }
 int mulint(void){
