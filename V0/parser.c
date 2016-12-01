@@ -116,6 +116,9 @@ int vartype(void) {
 			match(REAL);
 			return REAL;
 			break;
+		case DOUBLE:
+			match(DOUBLE);
+			return DOUBLE;
 		default:
 			match(BOOLEAN);
 			return BOOLEAN;
@@ -226,7 +229,7 @@ void repstmt(void){
 }
 
 int isrelop(void)
-{
+{	
 	switch(lookahead) {
 		case '>':
 			match('>');
@@ -254,13 +257,47 @@ int isrelop(void)
 	return 0;
 }
 
+void assemble_relop(int relop) {
+	compare();
+  
+	int _true, _false;
+  	switch(relop) {
+		case '>':
+			_true = jump_greater(labelcounter++);
+			break;
+		case GEQ:
+			_true = jump_greaterequal(labelcounter++);
+			break;
+		case '<':
+			_true = jump_less(labelcounter++);
+			break;
+		case LEQ:
+			_true = jump_lessequal(labelcounter++);
+			break;
+		case '=':
+			_true = jump_equal(labelcounter++);
+			break;
+		case NEQ:
+			_true = jump_notequal(labelcounter++);
+			break;
+	}
+	move_false();
+	_false = jump(labelcounter++);
+	mklabel(_true);
+	move_true();
+	mklabel(_false);
+}
+
 /* syntax: expr -> smpexpr [ relop smpexpr ] */
 int expr(int inherited_type)
 {
+	int reloperator;
 	int t1 = 0, t2 = 0;
 	t1 = smpexpr(0);
-	if (isrelop()) {
+	if (reloperator = isrelop()) {
 		t2 = smpexpr(t1);
+		
+		assemble_relop(reloperator);
 	}
 	
 	if (t1 == t2 && t1 == BOOLEAN || t1 > BOOLEAN && t2 > BOOLEAN) {

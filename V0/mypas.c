@@ -16,6 +16,13 @@ FILE *source, *object;
 int
 main (int argc, char *argv[], char *envp[])
 {
+  	source = fopen (argv[1], "r");	
+	if (source == NULL) {
+		fprintf (stderr, "%s: cannot open %s... exiting\n",
+			argv[0], argv[1]);
+		return FLNTFND;
+	}  
+  
         char* ext = strchr(argv[1], '.');
 	char* pasExt = ".pas";
 	char* objectName = "object.s";
@@ -25,23 +32,17 @@ main (int argc, char *argv[], char *envp[])
 		fprintf(stderr, "incompatible file\n");
 		return INCMPTY;
 	}
-		
-	source = fopen (argv[1], "r");	
-	if (source == NULL) {
-		fprintf (stderr, "%s: cannot open %s... exiting\n",
-			argv[0], argv[1]);
-		return FLNTFND;
-	}
 	
-	object = fopen(objectName, "w+");
+	//object = fopen(objectName, "w+");
+	object = stdout;
         
         mypas();
 	
 	if (object)
-	  fclose(object);
+	  //fclose(object);
 	
 	if (error) {
-	  remove(objectName);
+	  //remove(objectName);
 	  return error;
 	}
 	

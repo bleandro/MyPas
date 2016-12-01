@@ -1,28 +1,72 @@
 /**@<pseudoassembly.c>::**/
 #include <stdio.h>
 #include <mypas.h>
-
+#include <pseudoassembly.h>
 
 int labelcounter = 1;
 int gofalse(int label){
   fprintf(object, "\tjz .L%d\n", label);
+  return label;
 }
 
 int jump(int label){
   fprintf(object, "\tjmp .L%d\n", label);
+  return label;
+}
+
+int jump_lessequal(int label){
+  fprintf(object, "\tjle .L%d\n", label);
+  return label;
+}
+
+int jump_less(int label){
+  fprintf(object, "\tjlt .L%d\n", label);
+  return label;
+}
+
+int jump_greaterequal(int label){
+  fprintf(object, "\tjge .L%d\n", label);
+  return label;
+}
+
+int jump_greater(int label){
+  fprintf(object, "\tjgt .L%d\n", label);
+  return label;
+}
+
+int jump_equal(int label){
+  fprintf(object, "\tjeq .L%d\n", label);
+  return label;
+}
+
+int jump_notequal(int label){
+  fprintf(object, "\tjne .L%d\n", label);
+  return label;
+}
+
+int compare() {
+  fprintf(object, "\tcmp (%%esp), %%eax\n");
 }
 
 int mklabel(int label){
   fprintf(object, ".L%d:\n", label);
   return label;
 }
-int lmovel(char const *variable){   //NOSSO É INVERSNO, PQ? NUM SEI, PQ DEUS QUIS
+int lmovel(char const *variable){ 
   fprintf(object, "\tmovl %%eax, %s\n", variable);
   return 0;
 }
 int lmoveq(char const *variable){
   fprintf(object, "\tmovq %%rax, %s\n", variable);
   return 0;
+}
+
+int move_true() {
+  fprintf(object, "\tmovl 1, %%eax\n");
+}
+
+int move_false() {
+  fprintf(object, "\tmovl 0, %%eax\n");
 }
 
 int rmovel(char const *variable){

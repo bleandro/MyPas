@@ -6,6 +6,15 @@ extern int labelcounter;
 //control pseudo-instructions
 int gofalse(int label);
 int jump(int label);
+int jump_lessequal(int label);
+int jump_less(int label);
+int jump_greaterequal(int label);
+int jump_greater(int label);
+int jump_equal(int label);
+int jump_notequal(int label);
+int compare();
+int move_true();
+int move_false();
 int mklabel(int label);
 int lmovel(char const *variable);
 int lmoveq(char const *variable);
