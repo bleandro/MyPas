@@ -31,7 +31,7 @@ main (int argc, char *argv[], char *envp[])
 	      } 
 	      else if (strcmp(argv[2], "-o") == 0) {
 		    objectFileName = argv[3];
-		    sourceFileName = argv[2];
+		    sourceFileName = argv[1];
 	      }
 	      else {
 		    fprintf(stderr, "arguments provided were not as expected\n");
@@ -46,11 +46,11 @@ main (int argc, char *argv[], char *envp[])
   	source = fopen (sourceFileName, "r");	
 	if (source == NULL) {
 		fprintf (stderr, "%s: cannot open %s... exiting\n",
-			argv[0], argv[1]);
+			argv[0], sourceFileName);
 		return FLNTFND;
 	}  
   
-        char* sourceExt = strchr(argv[1], '.');
+        char* sourceExt = strchr(sourceFileName, '.');
 	// Make sure user entered with ".pas" FILE
 	if (strcmp(sourceExt, extension_expected) != 0) {
 		fprintf(stderr, "incompatible file\n");
