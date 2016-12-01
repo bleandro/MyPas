@@ -1,0 +1,251 @@
+/**@<lexer.c>::**/
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <tokens.h>
+#include <keywords.h>
+#include <lexer.h>
+
+void skipspaces (FILE *tape){
+  int head;
+  while ( isspace ( head = getc (tape) ) );
+  ungetc ( head, tape );
+}
+
+char lexeme[MAXID_SIZE+1];//@ lexer.c
+
+int is_assign(FILE *tape){
+  if((lexeme[0] = getc(tape)) == ':'){
+    if((lexeme[1] = getc(tape)) == '='){
+      lexeme[2] = 0;
+      return ASGN;
+    }
+    ungetc(lexeme[1], tape);
+  }
+  ungetc(lexeme[0], tape);
+  return 0;
+}
+
+int is_identifier(FILE *tape){
+        int i = 0;
+
+        lexeme[i] = getc(tape);
+        if (isalpha (lexeme[i]) ) {
+
+                for (i++;
+                     isalnum (lexeme[i] = getc(tape));
+                     i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+
+                ungetc (lexeme[i], tape);
+                lexeme[i] = 0;
+                if( i = iskeyword(lexeme) ) return i;
+                return ID;
+        }
+        ungetc (lexeme[i], tape);
+        return 0;
+}
+
+int is_decimal(FILE *tape){
+        int i =0;
+
+        lexeme[i] = getc(tape);
+
+        if (isdigit (lexeme[i]) ) {
+                if (lexeme[i] == '0') {
+                        return DEC;
+                }
+                // [0-9]*
+                for(i++;
+                    isdigit (lexeme[i] = getc(tape));
+                    i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+                ungetc (lexeme[i], tape);
+                lexeme[i] = 0;
+                return DEC;
+        }
+        ungetc (lexeme[i], tape);
+        return 0;
+}
+
+int is_octal(FILE *tape){
+        int octpref = getc(tape);
+
+        if (octpref == '0') {
+                int i =0;
+                lexeme[i] = octpref;  //primeiro elemento recebe 0, prefixo de octal
+                i++;
+                lexeme[i] = getc(tape); //segundo elemento recebe o conteudo da fita
+
+                if ( lexeme[i] >= '0' && lexeme[i] <= '7') {
+                        for (i++;
+                             (lexeme[i] = getc(tape)) >= '0' && lexeme[i] <= '7';
+                             i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+
+                        ungetc (lexeme[i], tape);
+                        lexeme[i] = 0;
+                        return OCTAL;
+
+                } else {
+                        ungetc (lexeme[i], tape);
+                        ungetc (octpref, tape);
+                        return 0;
+                }
+        }
+        ungetc (octpref, tape);
+        return 0;
+}
+
+int is_hexadecimal(FILE *tape){
+        int hexzero = getc(tape);
+        if(hexzero == '0') {
+                int i = 0;
+                lexeme[i] = hexzero;
+                i++;
+                int hexX = getc(tape);
+
+                if( (toupper(hexX)) == 'X') {
+                        lexeme[i] = hexX;
+                        i++;
+                        lexeme[i] = getc(tape);
+
+                        if(isdigit(lexeme[i]) || (toupper(lexeme[i]) >= 'A' && toupper(lexeme[i]) <= 'F') ) {
+                                for(i++;
+                                    isdigit(lexeme[i] = getc(tape)) || (toupper(lexeme[i]) >= 'A' && toupper(lexeme[i]) <= 'F');
+                                    i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+                                ungetc(lexeme[i], tape);
+                                lexeme[i] = 0;
+                                return HEX;
+                        }else{
+                                ungetc(lexeme[i], tape);
+                                ungetc(hexX, tape);
+                                ungetc(hexzero, tape);
+                        }
+                }
+                else{
+                        ungetc(hexX, tape);
+                        ungetc(hexzero, tape);
+                        return 0;
+                }
+        }
+        ungetc(hexzero, tape);
+        return 0;
+}
+
+int is_decimal_float(FILE *tape){
+    // (dec '.' digit* | '.' digit+ ) exp? | dec exp
+      int i;
+
+      if( is_decimal(tape) ){ //inicia com dec
+                i = strlen(lexeme);
+                lexeme[i] = getc(tape);
+
+                if(lexeme[i] == '.'){  //decimal.digit
+                        for(i++;
+                            isdigit(lexeme[i] = getc(tape));
+                            i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+
+                        /*
+                        ungetc(lexeme[i], tape);
+                        if(hasExponencial(tape) == 'FLT') // dec . digit exp
+                            return FLT; */
+
+                        ungetc(lexeme[i], tape);
+                        lexeme[i] = 0;
+                        return FLT;
+                }
+
+                /*
+                if(hasExponencial(tape) == 'FLT') // dec exp
+                  return FLT; */
+
+                ungetc(lexeme[i], tape);
+                lexeme[i] = 0;
+                return DEC;
+      }
+
+      lexeme[0] = getc(tape);
+
+      if (lexeme[0] == '.'){  //inicia com .
+                i = 1;
+                if( isdigit(lexeme[i] = getc(tape)) ){ //condição aceitavel ( .digit )
+                        for(i++;
+                            isdigit(lexeme[i] = getc(tape));
+                            i < MAXID_SIZE ? i++ : i);  //verificação de tamamho32
+
+                        /*
+                        ungetc(lexeme[i], tape);
+                        if(hasExponencial(tape) == 'FLT') // . digit exp
+                          return FLT;  */
+
+                        ungetc(lexeme[i], tape);
+                        lexeme[i] = 0;
+                        return FLT;
+                }
+
+                ungetc(lexeme[1], tape);
+      }
+      ungetc(lexeme[0], tape);
+
+      return 0;
+}
+
+int hasExponencial(FILE *tape){
+  int i = strlen(lexeme);
+  lexeme[i] = getc(tape);
+
+  if (toupper(lexeme[i]) == 'E'){
+    i++;
+    lexeme[i] = getc(tape);
+
+    if (isdigit(lexeme[i])) {
+      for(i++; isdigit(lexeme[i] = getc(tape)); i++);
+      ungetc(lexeme[i], tape);
+      lexeme[i] = 0;
+      return FLT;
+    }
+
+    ungetc(lexeme[i], tape);
+    i--;
+  }
+
+  ungetc(lexeme[i], tape);
+  lexeme[i] = 0;
+
+  return 0;
+}
+
+int gettoken (FILE *sourcecode)
+{
+        int token;
+
+        skipspaces (sourcecode);
+
+	if ( token = is_assign(sourcecode) ) {
+		return ASGN;
+	}
+
+        if ( token = is_identifier(sourcecode) ) {
+                return token;
+        }
+
+        if ( token = is_hexadecimal (sourcecode) ) {
+                return HEX;
+        }
+
+        if ( token = is_octal (sourcecode) ) {
+                return OCTAL;
+        }
+
+        if ( token = is_decimal_float (sourcecode) ) {
+          if ( hasExponencial (sourcecode) )
+             return FLT;
+
+          return token;
+        }
+
+        lexeme[0] = token = getc (sourcecode);
+        lexeme[1] = 0;
+
+        return token;
+}
