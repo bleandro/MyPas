@@ -31,11 +31,8 @@ void body(void){
 }
 
 /** declarative -> [ VAR namelist ':' vartype ';' ||
-			{ namelist ':' vartype ';' } ]
-                   { sbpmod sbpname parmdef [ ':' fnctype ] ';' body ';' } */
+			{ namelist ':' vartype ';' } ] */
 void declarative(void){
-	int sbpmod;
-
 	/* vardef -> VAR namelist ':' vartype ';' || vardef.symtab <- forall symbol in namelist.name do
 								      		symtab_append(symbol,vartype.type)
 								      end do
