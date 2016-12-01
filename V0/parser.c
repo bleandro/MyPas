@@ -125,18 +125,6 @@ int vartype(void) {
 	}
 }
 
-void fnctype(void){
-	switch(lookahead){
-		case INTEGER:
-			match(INTEGER);
-			break;
-		case REAL:
-			match(REAL);
-			break;
-		default: match(BOOLEAN);
-	}
-}
-
 /*stmt -> imperative
 	| IF smpexpr THEN { stmt } [ ELSE stmt ]
 *	| WHILE smpexpr DO stmt
