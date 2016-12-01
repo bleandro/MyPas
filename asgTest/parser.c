@@ -626,14 +626,15 @@ int smpexpr (int inherited_type)
 		break;
 		
 	case TRUE: case FALSE:
-		match(lookahead);
 		syntype = BOOLEAN;
 		if (acctype == BOOLEAN || acctype == 0) {
+		    lookahead == TRUE ? move_true() : move_false();
 		    acctype = BOOLEAN;
 		} else {
 		    error = INCMPTY;
 		    fprintf(stderr, "incompatible types: fatal error.\n");
 		}
+		match(lookahead);
 		break;
 	default:
 		match ('(');
@@ -684,7 +685,7 @@ int smpexpr (int inherited_type)
 
 	if (lvalue_seen && varlocality > -1) {
 		switch(ltype){
-			case INTEGER: case REAL:
+			case INTEGER: case REAL: case BOOLEAN:
 				lmovel(symtab_stream + symtab[varlocality][0]);
 			break;
 			case DOUBLE:
